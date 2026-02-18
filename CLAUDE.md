@@ -140,8 +140,30 @@
 
 ## 参考メディア・スタイル
 
-参考URL: https://toyokumo-blog.kintoneapp.com/kintone-portal-design-m/
-（トヨクモ株式会社が運営するkintone専門ブログ）
+### 参考メディア一覧
+
+記事執筆時にWebFetchで取得して、見出し構成・文体・情報の深さを参考にする。
+**コピーは厳禁**。「構成・切り口・情報量」の参考にとどめる。
+
+| ドメイン | 運営会社 | 特徴・活用場面 |
+|---------|---------|-------------|
+| https://toyokumo-blog.kintoneapp.com | トヨクモ | kintone専門メディア。比較記事・用途別解説が多い。**文体・構成の主要参考先** |
+| https://smartat.jp/blog | M-SOLUTIONS（Smart at） | プラグイン活用・導入手順・選定観点など実務寄り記事 |
+| https://www.joyzo.co.jp/blog | ジョイゾー | 基本操作〜JavaScript/REST APIまで幅広い。開発者にも読みやすい |
+| https://www.r3it.com/column | アールスリーインスティテュート | 設計・権限・運用〜カスタマイズまで体系的。基礎〜応用コラムが充実 |
+| https://kankyodigital-sol.jp/kintone/kintoneblog/ | EDSエンターテイメント | 基本機能/手順/プラグイン/事例などカテゴリで整理されている |
+| https://www.jbcc.co.jp/blog/column/ | JBCC | 情シス・管理者向けの導入・活用・プラグイン選定解説が多い |
+| https://kintone.cybozu.co.jp | サイボウズ（kintone公式） | 用途別活用方法・導入〜定着の学習コンテンツ。**公式情報として信頼度が高い** |
+| https://cybozu.dev | サイボウズ（cybozu developer network） | 開発Tips/カスタマイズ/プラグイン/運用Tipsなど開発者向け公式 |
+| https://blog.cybozu.io | サイボウズ（Cybozu Inside Out） | kintone関連の開発・運用・AIなど深めの話題。技術ブログ |
+| https://tech.cybozu.io | サイボウズ（Cybozu Tech） | kintone開発系まとめ・ポータル。ブログやスライドへの導線あり |
+
+### 参考メディアの使い方
+
+- **記事執筆前**: 同テーマの記事をWebFetchで取得し、「見出し構成・扱っている情報・深さ」を把握する
+- **差別化確認**: 競合が書いていない切り口・悩みの言語化を探す
+- **情報の正確性確認**: kintone公式（kintone.cybozu.co.jp / cybozu.dev）で機能仕様を裏付ける
+- **文体は参考にしない**: 各社で文体は異なるため、スタイルはトヨクモブログの特徴（下記）を優先する
 
 ### トヨクモブログから学んだスタイルの特徴
 
