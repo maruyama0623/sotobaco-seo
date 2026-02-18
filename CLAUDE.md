@@ -314,6 +314,49 @@ LP（https://sotobaco.com/sotobacoportal）
 
 ---
 
+## 画像管理ルール
+
+### フォルダ・カタログ
+
+- 画像はすべて `images/` フォルダに格納する
+- 画像の詳細情報は `images/README.md`（画像カタログ）で一元管理する
+- **新しい画像を追加したら必ずカタログに追記する**
+
+### 命名ルール
+
+```
+{feature}_{description}.png
+
+例: announce_category.png
+```
+
+- `feature`: 機能名（announce / tab / graph / app-list / notification / unprocessed / space / smartphone / setup / kintone / portal）
+- `description`: 何の画面か（overview / settings / before / after / category / list / drag-drop / mobile / add）
+- すべて小文字・ハイフン区切り・拡張子は `.png`（写真素材は `.jpg`）
+
+### 記事への埋め込み方法
+
+```markdown
+![Altテキスト](../images/ファイル名.png)
+
+例:
+![ソトバコポータルの全体アナウンス・カテゴリ別表示画面](../images/announce_category.png)
+```
+
+- **Altテキストは `images/README.md` のカタログからコピーする**（SEO効果あり）
+- 画像選定に迷ったら `images/README.md` の「使いどころ」列を参照する
+
+### 画像追加フロー
+
+```
+1. スクリーンショットを撮る
+2. 命名ルールに従いファイル名をつけて images/ にアップロード（GitHub Web UIまたはgit push）
+3. Claudeに「画像を追加した」と伝える
+4. Claudeが画像を確認して images/README.md に追記する
+```
+
+---
+
 ## 記事一覧
 
 | No | ファイル名 | タイトル | 種別 | メインキーワード | 公開日 | 備考 |
