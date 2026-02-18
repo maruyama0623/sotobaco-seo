@@ -157,6 +157,9 @@
 | https://cybozu.dev | サイボウズ（cybozu developer network） | 開発Tips/カスタマイズ/プラグイン/運用Tipsなど開発者向け公式 |
 | https://blog.cybozu.io | サイボウズ（Cybozu Inside Out） | kintone関連の開発・運用・AIなど深めの話題。技術ブログ |
 | https://tech.cybozu.io | サイボウズ（Cybozu Tech） | kintone開発系まとめ・ポータル。ブログやスライドへの導線あり |
+| https://note.com | note | kintone活用・業務改善の実践記事・事例。ユーザー視点の言語化に活用 |
+| https://zenn.dev | Zenn | kintoneカスタマイズ・JavaScript・APIなど技術寄りの記事。実装の切り口参考に |
+| https://qiita.com | Qiita | kintone開発Tips・カスタマイズ・トラブルシュートなど技術記事。情報の深さ参考に |
 
 ### 参考メディアの使い方
 
