@@ -76,6 +76,7 @@
 | kintone_portal-default.png | kintone 公式ヘルプ | https://jp.kintone.help/k/ja/portal | kintoneのデフォルトポータル説明ページより引用 |
 | kintone_announce-app-grid.webp | saccsy.com | https://saccsy.com/works/baumkuchen-dc/ | kintoneお知らせカスタマイズ事例記事より引用 |
 | kintone_apps-overflow.webp | **要確認** | - | 出典元を確認してこの表に追記してください |
+| kintone_portal-designer.png | cybozu developer network | https://cybozu.dev/ja/kintone/tips/development/customize/portal/designing/ | Kintone Portal Designerの活用Tipsページより引用 |
 
 ---
 
@@ -208,6 +209,7 @@
 | kintone_app-setting.png | kintoneの「ポータルの設定」モーダル。「ポータルに表示するコンテンツ」の「アプリ」チェックボックス（赤枠）が有効になっている。ソトバコポータルでアプリ一覧を表示するための前提設定 | アプリ一覧表示の前提設定（kintone側）の説明、機能記事での設定手順の補足図解 | kintoneのポータル設定画面。「アプリ」にチェックを入れることでソトバコポータルにkintoneのアプリ一覧を表示できるようになる |
 | kintone_space-url.png | kintoneブラウザのアドレスバー。「営業部スペース」タブが開いており、URLが `https://〇〇.cybozu.com/k/#/space/4` と表示されている（赤枠ハイライト）。URLの末尾数字がスペースIDであることを示す | スペースIDの確認方法の説明（kintone URLの末尾数字）、スペースリンク・スペース単位ポータル設定の前準備説明、方法記事（⑧）の手順図解 | kintoneのスペースURLからスペースIDを確認する方法。URLの末尾（`/k/#/space/〇〇`の数字部分）がスペースIDとなる |
 | kintone_space-settings.png | kintoneの「スペースの管理」モーダル（基本設定タブ）。スペース名入力欄（「営業1課スペース」、赤枠）とカバー画像選択（ヤシの木の砂浜が選択済み、赤枠）が確認できる。「スペース名を変更」「カバー画像を変更」の赤いラベル付き | スペースリンクのkintone側設定説明（スペース名・カバー画像の変更）、自動同期機能の前提説明、方法記事（⑧）でのkintone操作手順図解 | kintoneのスペース管理画面。スペース名やカバー画像を変更すると、ソトバコポータルのスペースリンクカードにも自動的に反映される |
+| kintone_portal-designer.png | Kintone Portal Designerで作成したポータル画面の例。上部に「Apps」セクション（IT窓口・わくわくFAQ・社員名簿・休暇申請・通達などのアプリアイコンをグリッド表示）、下部に「Spaces」セクション（カバー画像付きのスペース一覧）が確認できる（引用画像） | Kintone Portal Designer導入事例・完成イメージの紹介、競合比較・移行先検討の文脈、方法記事（②③）・共感記事（①④）でのPortal Designer紹介・代替サービスへの誘導 | Kintone Portal Designerで作成したkintoneポータル画面。アプリアイコンをグリッド表示する「Apps」セクションと、スペースカバー画像を一覧表示する「Spaces」セクションで構成されている |
 
 ### portal（ポータル全体画面）
 
