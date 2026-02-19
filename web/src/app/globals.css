@@ -1,0 +1,34 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-feature-settings: "pkna";
+}
+
+/* 記事内の画像：コンテナ幅に収める */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* サムネイルタイトル：日本語フレーズ単位で改行 */
+.break-auto-phrase {
+  word-break: auto-phrase;
+}
+
+/* サムネイルタイトル：フォント設定 */
+.thumbnail-title {
+  font-weight: 800;
+  font-size: 1.36rem;
+  line-height: 32px;
+  color: rgb(35, 34, 31);
+}
+
+/* 記事内のテーブル：モバイルで横スクロール可能にする */
+.prose table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
