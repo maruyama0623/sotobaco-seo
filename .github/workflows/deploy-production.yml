@@ -27,7 +27,7 @@ jobs:
         working-directory: web
         run: npm run build
 
-      - name: Deploy to production via SFTP
+      - name: Deploy to production via SCP
         env:
           SFTP_KEY: ${{ secrets.SFTP_KEY }}
           SFTP_HOST: ${{ secrets.SFTP_HOST }}
@@ -38,9 +38,6 @@ jobs:
           echo "$SFTP_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -p 8022 "$SFTP_HOST" >> ~/.ssh/known_hosts 2>/dev/null
-          sudo apt-get install -y -qq lftp > /dev/null 2>&1
-          lftp -e "
-            set sftp:connect-program 'ssh -p 8022 -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no';
-            mirror -R --delete --verbose web/out/ ${REMOTE_PATH};
-            quit
-          " sftp://${SFTP_USERNAME}@${SFTP_HOST}
+          SSH_CMD="ssh -p 8022 -i ~/.ssh/deploy_key"
+          $SSH_CMD ${SFTP_USERNAME}@${SFTP_HOST} "rm -rf ${REMOTE_PATH}* && mkdir -p ${REMOTE_PATH}"
+          scp -P 8022 -i ~/.ssh/deploy_key -r web/out/* ${SFTP_USERNAME}@${SFTP_HOST}:${REMOTE_PATH}
