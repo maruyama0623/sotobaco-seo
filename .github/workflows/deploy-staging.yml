@@ -31,12 +31,6 @@ jobs:
         run: |
           printf "User-agent: *\nDisallow: /\n" > web/out/robots.txt
 
-      - name: Add Basic Auth for staging
-        run: |
-          HTPASSWD=$(echo "${{ secrets.STAGING_PASSWORD }}" | openssl passwd -apr1 -stdin)
-          printf "%s:%s\n" "${{ secrets.STAGING_USERNAME }}" "$HTPASSWD" > web/out/.htpasswd
-          printf '\nAuthType Basic\nAuthName "Staging"\nAuthUserFile /home/gz58r_r4509321/%s.htpasswd\nRequire valid-user\n' "${{ secrets.STAGING_REMOTE_PATH }}" >> web/out/.htaccess
-
       - name: Deploy to staging via SFTP
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
