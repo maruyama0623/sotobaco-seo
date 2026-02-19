@@ -31,17 +31,13 @@ jobs:
         run: |
           printf "User-agent: *\nDisallow: /\n" > web/out/robots.txt
 
-      - name: Deploy to staging via SCP
-        env:
-          SFTP_KEY: ${{ secrets.SFTP_KEY }}
-          SFTP_HOST: ${{ secrets.SFTP_HOST }}
-          SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
-          REMOTE_PATH: ${{ secrets.STAGING_REMOTE_PATH }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SFTP_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -p 8022 "$SFTP_HOST" >> ~/.ssh/known_hosts 2>/dev/null
-          SSH_CMD="ssh -p 8022 -i ~/.ssh/deploy_key"
-          $SSH_CMD ${SFTP_USERNAME}@${SFTP_HOST} "rm -rf ${REMOTE_PATH}* && mkdir -p ${REMOTE_PATH}"
-          scp -P 8022 -i ~/.ssh/deploy_key -r web/out/* ${SFTP_USERNAME}@${SFTP_HOST}:${REMOTE_PATH}
+      - name: Deploy to staging via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        with:
+          server: ${{ secrets.SFTP_HOST }}
+          port: 8022
+          username: ${{ secrets.SFTP_USERNAME }}
+          ssh_private_key: ${{ secrets.SFTP_KEY }}
+          local_path: ./web/out/
+          remote_path: ${{ secrets.STAGING_REMOTE_PATH }}
+          sftp_only: true
