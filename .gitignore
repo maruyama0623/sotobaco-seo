@@ -1,0 +1,9 @@
+# Dependencies
+node_modules/
+
+# Next.js build
+web/.next/
+web/out/
+
+# OS files
+.DS_Store
