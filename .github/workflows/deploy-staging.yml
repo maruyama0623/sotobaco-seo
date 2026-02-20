@@ -54,16 +54,17 @@ jobs:
         run: |
           printf "User-agent: *\nDisallow: /\n" > sites/blog/out/robots.txt
 
-      - name: Deploy to staging via SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      - name: Deploy to staging
+        uses: appleboy/scp-action@v0.1.7
         with:
-          server: ${{ secrets.SFTP_HOST }}
+          host: ${{ secrets.SFTP_HOST }}
           port: 8022
           username: ${{ secrets.SFTP_USERNAME }}
-          ssh_private_key: ${{ secrets.SFTP_KEY }}
-          local_path: ./sites/blog/out/
-          remote_path: ${{ secrets.STAGING_BLOG_PATH }}
-          sftp_only: true
+          key: ${{ secrets.SFTP_KEY }}
+          source: "sites/blog/out/"
+          target: ${{ secrets.STAGING_BLOG_PATH }}
+          strip_components: 3
+          overwrite: true
 
   deploy-lp:
     needs: detect-changes
@@ -92,13 +93,14 @@ jobs:
         run: |
           printf "User-agent: *\nDisallow: /\n" > sites/lp/out/robots.txt
 
-      - name: Deploy to staging via SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+      - name: Deploy to staging
+        uses: appleboy/scp-action@v0.1.7
         with:
-          server: ${{ secrets.SFTP_HOST }}
+          host: ${{ secrets.SFTP_HOST }}
           port: 8022
           username: ${{ secrets.SFTP_USERNAME }}
-          ssh_private_key: ${{ secrets.SFTP_KEY }}
-          local_path: ./sites/lp/out/
-          remote_path: ${{ secrets.STAGING_LP_PATH }}
-          sftp_only: true
+          key: ${{ secrets.SFTP_KEY }}
+          source: "sites/lp/out/"
+          target: ${{ secrets.STAGING_LP_PATH }}
+          strip_components: 3
+          overwrite: true
