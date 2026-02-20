@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-feature-settings: "pkna";
+}
+
+/* 記事内の画像：コンテナ幅に収める */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* サムネイルタイトル：日本語フレーズ単位で改行 */
+.break-auto-phrase {
+  word-break: auto-phrase;
+}
+
+/* サムネイルタイトル：フォント設定 */
+.thumbnail-title {
+  font-weight: 800;
+  font-size: 1.36rem;
+  line-height: 32px;
+  color: rgb(35, 34, 31);
+}
+
+/* 記事本文の最初のH1：ページ側で表示するため非表示 */
+.prose > h1:first-child {
+  display: none;
+}
+
+/* 記事内のH2：背景付き角丸ボックス */
+.prose h2 {
+  background-color: #F0F0F0;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+/* 記事内のH3：左にブランドカラーの縦線 */
+.prose h3 {
+  border-left: 4px solid #35b597;
+  padding-left: 12px;
+}
+
+/* 記事内のテーブル */
+.prose table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+/* PC時はテーブルをフル幅で表示 */
+@media (min-width: 1024px) {
+  .prose table {
+    display: table;
+    white-space: normal;
+  }
+}
+
+.prose thead {
+  background-color: #f0f0f0;
+}
+
+.prose th {
+  font-weight: 700;
+  padding: 12px 16px;
+  border-bottom: 2px solid #d1d5db;
+  text-align: left;
+}
+
+.prose td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.prose tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.prose tbody tr:hover {
+  background-color: #f0fdf8;
+}

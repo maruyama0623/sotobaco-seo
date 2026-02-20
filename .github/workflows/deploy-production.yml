@@ -6,7 +6,30 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      blog: ${{ steps.filter.outputs.blog }}
+      lp: ${{ steps.filter.outputs.lp }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Detect changed sites
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            blog:
+              - 'sites/blog/**'
+              - 'images/**'
+            lp:
+              - 'sites/lp/**'
+              - 'images/**'
+
+  deploy-blog:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.blog == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -15,16 +38,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: web/.nvmrc
+          node-version-file: sites/blog/.nvmrc
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          cache-dependency-path: sites/blog/package-lock.json
 
       - name: Install dependencies
-        working-directory: web
+        working-directory: sites/blog
         run: npm ci
 
       - name: Build
-        working-directory: web
+        working-directory: sites/blog
         run: npm run build
 
       - name: Deploy to production via SFTP
@@ -34,6 +57,40 @@ jobs:
           port: 8022
           username: ${{ secrets.SFTP_USERNAME }}
           ssh_private_key: ${{ secrets.SFTP_KEY }}
-          local_path: ./web/out/
-          remote_path: ${{ secrets.PRODUCTION_REMOTE_PATH }}
+          local_path: ./sites/blog/out/
+          remote_path: ${{ secrets.PRODUCTION_BLOG_PATH }}
+          sftp_only: true
+
+  deploy-lp:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.lp == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: sites/lp/.nvmrc
+          cache: npm
+          cache-dependency-path: sites/lp/package-lock.json
+
+      - name: Install dependencies
+        working-directory: sites/lp
+        run: npm ci
+
+      - name: Build
+        working-directory: sites/lp
+        run: npm run build
+
+      - name: Deploy to production via SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        with:
+          server: ${{ secrets.SFTP_HOST }}
+          port: 8022
+          username: ${{ secrets.SFTP_USERNAME }}
+          ssh_private_key: ${{ secrets.SFTP_KEY }}
+          local_path: ./sites/lp/out/
+          remote_path: ${{ secrets.PRODUCTION_LP_PATH }}
           sftp_only: true

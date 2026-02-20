@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-feature-settings: "pkna";
+}
+
+/* スムーズスクロール */
+html {
+  scroll-behavior: smooth;
+}

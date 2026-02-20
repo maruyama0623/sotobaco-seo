@@ -1,9 +1,16 @@
 # Dependencies
 node_modules/
 
-# Next.js build
+# Site build outputs
+sites/*/.next/
+sites/*/out/
+sites/*/node_modules/
+
+# LP images (copied at build time from root images/)
+sites/lp/public/images/
+
+# Legacy web/ directory
 web/.next/
-web/out/
 
 # OS files
 .DS_Store
