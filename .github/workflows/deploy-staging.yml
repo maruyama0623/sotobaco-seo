@@ -52,11 +52,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Copy images
+        working-directory: sites/blog
+        run: node scripts/copy-images.js
+
       - name: Build
         working-directory: sites/blog
-        run: |
-          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
-          npm run build
+        run: ${{ github.workspace }}/node_modules/.bin/next build
+
+      - name: Generate sitemap
+        working-directory: sites/blog
+        run: node scripts/generate-sitemap.js
 
       - name: Add robots.txt to block indexing
         run: |
@@ -92,11 +98,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Copy images
+        working-directory: sites/lp
+        run: node scripts/copy-images.js
+
       - name: Build
         working-directory: sites/lp
-        run: |
-          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
-          npm run build
+        run: ${{ github.workspace }}/node_modules/.bin/next build
 
       - name: Add robots.txt to block indexing
         run: |
@@ -132,11 +140,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Copy images
+        working-directory: sites/corporate
+        run: node scripts/copy-images.js
+
       - name: Build
         working-directory: sites/corporate
-        run: |
-          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
-          npm run build
+        run: ${{ github.workspace }}/node_modules/.bin/next build
 
       - name: Add robots.txt to block indexing
         run: |
