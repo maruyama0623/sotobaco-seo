@@ -30,7 +30,7 @@ export default function Header() {
             サービス
           </Link>
           <Link
-            href="#news"
+            href="/news/"
             className="text-sm font-medium text-gray-700 transition hover:text-brand"
           >
             お知らせ
@@ -78,7 +78,7 @@ export default function Header() {
             サービス
           </Link>
           <Link
-            href="#news"
+            href="/news/"
             className="block py-3 text-sm font-medium text-gray-700"
             onClick={() => setIsOpen(false)}
           >
