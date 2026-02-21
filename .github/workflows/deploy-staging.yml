@@ -47,22 +47,15 @@ jobs:
         with:
           node-version-file: sites/blog/.nvmrc
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: sites/blog/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Copy images
         working-directory: sites/blog
-        run: node scripts/copy-images.js
+        run: npm ci
 
       - name: Build
         working-directory: sites/blog
-        run: ../../node_modules/.bin/next build
-
-      - name: Generate sitemap
-        working-directory: sites/blog
-        run: node scripts/generate-sitemap.js
+        run: npm run build
 
       - name: Add robots.txt to block indexing
         run: |
@@ -93,18 +86,15 @@ jobs:
         with:
           node-version-file: sites/lp/.nvmrc
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: sites/lp/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Copy images
         working-directory: sites/lp
-        run: node scripts/copy-images.js
+        run: npm ci
 
       - name: Build
         working-directory: sites/lp
-        run: ../../node_modules/.bin/next build
+        run: npm run build
 
       - name: Add robots.txt to block indexing
         run: |
@@ -135,18 +125,15 @@ jobs:
         with:
           node-version-file: sites/corporate/.nvmrc
           cache: npm
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: sites/corporate/package-lock.json
 
       - name: Install dependencies
-        run: npm ci
-
-      - name: Copy images
         working-directory: sites/corporate
-        run: node scripts/copy-images.js
+        run: npm ci
 
       - name: Build
         working-directory: sites/corporate
-        run: ../../node_modules/.bin/next build
+        run: npm run build
 
       - name: Add robots.txt to block indexing
         run: |
