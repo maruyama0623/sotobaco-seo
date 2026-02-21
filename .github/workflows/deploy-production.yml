@@ -53,7 +53,7 @@ jobs:
 
       - name: Build
         working-directory: sites/blog
-        run: ${{ github.workspace }}/node_modules/.bin/next build
+        run: ../../node_modules/.bin/next build
 
       - name: Generate sitemap
         working-directory: sites/blog
@@ -95,7 +95,7 @@ jobs:
 
       - name: Build
         working-directory: sites/lp
-        run: ${{ github.workspace }}/node_modules/.bin/next build
+        run: ../../node_modules/.bin/next build
 
       - name: Deploy to production
         uses: appleboy/scp-action@v0.1.7

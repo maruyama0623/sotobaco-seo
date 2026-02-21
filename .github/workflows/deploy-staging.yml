@@ -58,7 +58,7 @@ jobs:
 
       - name: Build
         working-directory: sites/blog
-        run: ${{ github.workspace }}/node_modules/.bin/next build
+        run: ../../node_modules/.bin/next build
 
       - name: Generate sitemap
         working-directory: sites/blog
@@ -104,7 +104,7 @@ jobs:
 
       - name: Build
         working-directory: sites/lp
-        run: ${{ github.workspace }}/node_modules/.bin/next build
+        run: ../../node_modules/.bin/next build
 
       - name: Add robots.txt to block indexing
         run: |
@@ -146,7 +146,7 @@ jobs:
 
       - name: Build
         working-directory: sites/corporate
-        run: ${{ github.workspace }}/node_modules/.bin/next build
+        run: ../../node_modules/.bin/next build
 
       - name: Add robots.txt to block indexing
         run: |
