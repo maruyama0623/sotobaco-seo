@@ -3,10 +3,9 @@ import Script from "next/script";
 import { Noto_Sans_JP } from "next/font/google";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { GA_ID } from "@sotobaco/ui";
 import { buildSiteMetadata } from "@/lib/seo";
 import "./globals.css";
-
-const GA_ID = "G-EJ12H0HPHQ";
 
 const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],

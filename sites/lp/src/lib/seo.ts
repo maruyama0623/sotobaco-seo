@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 const SITE_NAME = "ソトバコポータル";
 const SITE_URL = "https://sotobaco.com/sotobacoportal";
-const DEFAULT_OG_IMAGE = "/images/portal_overview.png";
+const DEFAULT_OG_IMAGE = "/images/portal/portal_overview.png";
 
 export function buildSiteMetadata(): Metadata {
   return {
@@ -22,6 +22,9 @@ export function buildSiteMetadata(): Metadata {
     },
     twitter: {
       card: "summary_large_image",
+    },
+    icons: {
+      icon: "/images/sotobaco_favicon.ico",
     },
     alternates: {
       canonical: SITE_URL,

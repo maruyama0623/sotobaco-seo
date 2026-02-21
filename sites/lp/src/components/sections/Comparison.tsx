@@ -1,117 +1,78 @@
-const rows = [
+import SectionWrapper from "@/components/ui/SectionWrapper";
+import SectionHeader from "@/components/ui/SectionHeader";
+import ComparisonTable from "@/components/ui/ComparisonTable";
+import type { Column, Row } from "@/components/ui/ComparisonTable";
+
+const columns: Column[] = [
+  { key: "sotobaco", label: "ソトバコポータル", highlight: true, cta: "まずは無料で始める" },
+  { key: "plugin", label: "プラグイン型サービス" },
+  { key: "code", label: "コードカスタマイズ", subLabel: "（JavaScript / AI活用等）" },
+];
+
+const rows: Row[] = [
   {
     label: "費用",
     sotobaco: "無料〜¥9,800/月",
-    kodawari: "¥12,000/月（税別）",
-    designer: "無料（開発終了）",
-    ai: "基本無料",
+    plugin: "¥10,000〜/月が一般的",
+    code: "基本無料（開発工数は別）",
   },
   {
     label: "無料プラン",
     sotobaco: "あり（期間制限なし）",
-    kodawari: "なし（30日トライアルのみ）",
-    designer: "無料（開発終了）",
-    ai: "無料",
-    highlight: true,
+    plugin: "なし（トライアルのみが多い）",
+    code: "無料",
   },
   {
     label: "操作難易度",
     sotobaco: "ドラッグ&ドロップで簡単",
-    kodawari: "ドラッグ&ドロップで比較的簡単",
-    designer: "設定が必要",
-    ai: "高い（コード知識必要）",
+    plugin: "比較的簡単",
+    code: "高い（コード知識必要）",
   },
   {
     label: "属人化リスク",
     sotobaco: "低い（誰でも操作可）",
-    kodawari: "低い",
-    designer: "高い",
-    ai: "高い（作った人に依存）",
+    plugin: "低い",
+    code: "高い（作った人に依存）",
   },
   {
-    label: "閲覧権限の設定単位",
+    label: "閲覧権限の設定",
     sotobaco: "タブ単位（3軸で柔軟に設定）",
-    kodawari: "画面単位（最大10画面）",
-    designer: "なし",
-    ai: "実装次第",
+    plugin: "画面単位が一般的",
+    code: "実装次第",
+  },
+  {
+    label: "通知・未処理・アプリ一覧",
+    sotobaco: "○",
+    plugin: "△（サービスによる）",
+    code: "実装次第",
+  },
+  {
+    label: "スペース単位ポータル",
+    sotobaco: "○",
+    plugin: "サービスによる",
+    code: "実装次第",
   },
   {
     label: "グラフ表示",
     sotobaco: "○",
-    kodawari: "◎（複数アプリ統合）",
-    designer: "△",
-    ai: "実装次第",
+    plugin: "○",
+    code: "実装次第",
   },
   {
     label: "スマートフォン対応",
     sotobaco: "○",
-    kodawari: "○",
-    designer: "×",
-    ai: "実装次第",
-  },
-  {
-    label: "今後のサポート",
-    sotobaco: "○",
-    kodawari: "○",
-    designer: "×（開発終了）",
-    ai: "−",
+    plugin: "サービスによる",
+    code: "実装次第",
   },
 ];
 
 export default function Comparison() {
   return (
-    <section className="py-16 md:py-24">
-      <div className="mx-auto max-w-[1200px] px-4">
-        <h2 className="text-center text-2xl font-extrabold text-gray-900 md:text-3xl">
-          他のポータルカスタマイズ方法との比較
-        </h2>
-        <div className="mt-12 overflow-x-auto">
-          <table className="w-full min-w-[700px] border-collapse">
-            <thead>
-              <tr className="border-b-2 border-gray-200">
-                <th className="px-4 py-3 text-left text-sm font-bold text-gray-500" />
-                <th className="bg-brand-light px-4 py-3 text-center text-sm font-bold text-brand">
-                  ソトバコポータル
-                </th>
-                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700">
-                  こだわりkintone
-                </th>
-                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700">
-                  Portal Designer
-                </th>
-                <th className="px-4 py-3 text-center text-sm font-bold text-gray-700">
-                  AI活用
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.label} className="border-b border-gray-100">
-                  <td className="px-4 py-3 text-sm font-medium text-gray-700">
-                    {row.label}
-                  </td>
-                  <td
-                    className={`bg-brand-light/50 px-4 py-3 text-center text-sm font-medium text-gray-900 ${
-                      row.highlight ? "font-bold text-brand" : ""
-                    }`}
-                  >
-                    {row.sotobaco}
-                  </td>
-                  <td className="px-4 py-3 text-center text-sm text-gray-600">
-                    {row.kodawari}
-                  </td>
-                  <td className="px-4 py-3 text-center text-sm text-gray-600">
-                    {row.designer}
-                  </td>
-                  <td className="px-4 py-3 text-center text-sm text-gray-600">
-                    {row.ai}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+    <SectionWrapper>
+      <SectionHeader label="比較" title="ポータルカスタマイズ方法の比較" />
+      <div className="mt-12">
+        <ComparisonTable columns={columns} rows={rows} />
       </div>
-    </section>
+    </SectionWrapper>
   );
 }

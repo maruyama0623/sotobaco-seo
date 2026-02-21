@@ -2,12 +2,15 @@ import Hero from "@/components/sections/Hero";
 import Problems from "@/components/sections/Problems";
 import BeforeAfter from "@/components/sections/BeforeAfter";
 import Features from "@/components/sections/Features";
-import Numbers from "@/components/sections/Numbers";
+import UseCases from "@/components/sections/UseCases";
+import MainFeatures from "@/components/sections/MainFeatures";
+import Pricing from "@/components/sections/Pricing";
 import Steps from "@/components/sections/Steps";
 import Migration from "@/components/sections/Migration";
 import Comparison from "@/components/sections/Comparison";
 import Testimonials from "@/components/sections/Testimonials";
 import CtaSection from "@/components/sections/CtaSection";
+import CtaCards from "@/components/sections/CtaCards";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -42,12 +45,16 @@ export default function HomePage() {
       <Problems />
       <BeforeAfter />
       <Features />
-      <Numbers />
+      <CtaSection />
+      <UseCases />
+      <MainFeatures />
+      <Pricing />
       <Steps />
       <Migration />
       <Comparison />
       <Testimonials />
-      <CtaSection />
+      <CtaSection variant="bordered" />
+      <CtaCards />
     </>
   );
 }

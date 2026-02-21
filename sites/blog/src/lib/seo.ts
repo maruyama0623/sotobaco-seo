@@ -3,7 +3,7 @@ import type { Article, ArticleSummary } from "@/types/article";
 
 const SITE_NAME = "ソトバコ ブログ";
 const SITE_URL = "https://blog.sotobaco.com";
-const DEFAULT_OG_IMAGE = "/images/portal_overview.png";
+const DEFAULT_OG_IMAGE = "/images/portal/portal_overview.png";
 
 export function buildSiteMetadata(): Metadata {
   return {
@@ -23,6 +23,9 @@ export function buildSiteMetadata(): Metadata {
     },
     twitter: {
       card: "summary_large_image",
+    },
+    icons: {
+      icon: "/images/sotobaco_favicon.ico",
     },
     alternates: {
       canonical: SITE_URL,
@@ -73,7 +76,7 @@ export function buildArticleJsonLd(article: Article | ArticleSummary) {
       name: "株式会社ソトバコ.",
       logo: {
         "@type": "ImageObject",
-        url: `${SITE_URL}/images/logo-portal-yoko.png`,
+        url: `${SITE_URL}/images/logo/logo-portal-yoko.png`,
       },
     },
     mainEntityOfPage: {

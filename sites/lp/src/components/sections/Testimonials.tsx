@@ -1,3 +1,5 @@
+import SectionHeader from "@/components/ui/SectionHeader";
+
 const testimonials = [
   {
     quote:
@@ -11,30 +13,71 @@ const testimonials = [
   },
 ];
 
+function UserIcon() {
+  return (
+    <svg
+      className="h-14 w-14 text-brand/40"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2a7.2 7.2 0 01-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 01-6 3.22z" />
+    </svg>
+  );
+}
+
 export default function Testimonials() {
   return (
-    <section className="bg-gray-50 py-16 md:py-24">
-      <div className="mx-auto max-w-[1200px] px-4">
-        <h2 className="text-center text-2xl font-extrabold text-gray-900 md:text-3xl">
-          kintone管理者の声
-        </h2>
-        <div className="mt-12 grid gap-8 md:grid-cols-2">
-          {testimonials.map((t, i) => (
-            <div
-              key={i}
-              className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm"
-            >
-              <svg className="h-8 w-8 text-brand/30" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-              </svg>
-              <p className="mt-4 leading-relaxed text-gray-700">{t.quote}</p>
-              <p className="mt-4 text-sm font-medium text-gray-500">
-                {t.role}
-              </p>
-            </div>
-          ))}
+    <section className="relative">
+      {/* Top wave */}
+      <svg
+        className="block w-full"
+        viewBox="0 0 1440 80"
+        fill="none"
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M0 80V40C240 0 480 0 720 40C960 80 1200 80 1440 40V80H0Z"
+          className="fill-brand-light"
+        />
+      </svg>
+
+      {/* Content */}
+      <div className="bg-brand-light pb-4">
+        <div className="mx-auto max-w-[1200px] px-4">
+          <SectionHeader label="お客様の声" title="kintone管理者の声" />
+          <div className="mt-12 grid gap-8 md:grid-cols-2">
+            {testimonials.map((t, i) => (
+              <div
+                key={i}
+                className="rounded-2xl bg-white p-8 shadow-sm"
+              >
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-light">
+                  <UserIcon />
+                </div>
+                <p className="text-sm leading-loose text-gray-700">
+                  {t.quote}
+                </p>
+                <p className="mt-4 text-xs font-bold text-gray-400">
+                  {t.role}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Bottom wave */}
+      <svg
+        className="block w-full"
+        viewBox="0 0 1440 80"
+        fill="none"
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M0 0V40C240 80 480 80 720 40C960 0 1200 0 1440 40V0H0Z"
+          className="fill-brand-light"
+        />
+      </svg>
     </section>
   );
 }

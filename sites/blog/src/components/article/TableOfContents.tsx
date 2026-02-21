@@ -1,11 +1,13 @@
 import type { TocItem } from "@/lib/markdown";
+import SidebarCard from "@/components/ui/SidebarCard";
+import SidebarHeading from "@/components/ui/SidebarHeading";
 
 export default function TableOfContents({ items }: { items: TocItem[] }) {
   if (items.length === 0) return null;
 
   return (
-    <nav className="rounded-xl border border-gray-100 bg-white p-5">
-      <p className="mb-3 text-sm font-bold text-gray-700">目次</p>
+    <SidebarCard as="nav">
+      <SidebarHeading>目次</SidebarHeading>
       <ul className="space-y-1.5 text-sm">
         {items.map((item) => (
           <li
@@ -21,6 +23,6 @@ export default function TableOfContents({ items }: { items: TocItem[] }) {
           </li>
         ))}
       </ul>
-    </nav>
+    </SidebarCard>
   );
 }

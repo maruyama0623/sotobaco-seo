@@ -5,6 +5,21 @@
 
 ---
 
+## フォルダ構成
+
+```
+images/
+├── portal/        ← ソトバコポータル製品スクリーンショット（portal_*, tab_*, space_*, space-link_*, graph_*, announce_*, kintone_*, app-list_*, smartphone_*, setup_*）
+├── logo/          ← 会社ロゴ・シンボル（logo-*, symbol.*）
+├── partner/       ← パートナーバッジ（partner_*）
+├── icons/         ← アイコン系画像（howto_*）
+├── sotobaco_favicon.ico
+├── no_image.jpg
+└── README.md
+```
+
+---
+
 ## 命名ルール
 
 ```
@@ -30,6 +45,7 @@
 | `setup` | 初期設定・OAuth連携手順 |
 | `kintone` | kintone標準画面（比較・説明用） |
 | `portal` | ポータル全体画面（Before/After等） |
+| `partner` | パートナー認定バッジ |
 
 ### description の語彙
 
@@ -52,7 +68,7 @@
 ```
 1. スクリーンショットを撮る
 2. 命名ルールに従ってファイル名をつける
-3. GitHubのこのリポジトリの images/ フォルダにアップロード
+3. GitHubのこのリポジトリの images/ の該当サブフォルダにアップロード
 4. Claudeに「画像を追加した」と伝える（他社サイトからの引用の場合は出典URLも伝える）
 5. Claudeが画像を確認してこのREADME.mdに追記する
 6. 他社のサイト・外部素材からの引用画像は、下記「引用画像の出典一覧」にも記載する
@@ -83,10 +99,10 @@
 ## 記事への埋め込み方法
 
 ```markdown
-![Altテキスト](../images/ファイル名.png)
+![Altテキスト](../images/{サブフォルダ}/ファイル名.png)
 
 例:
-![ソトバコポータルの全体アナウンス・カテゴリ別表示画面](../images/announce_category.png)
+![ソトバコポータルの全体アナウンス・カテゴリ別表示画面](../images/portal/announce_category.png)
 ```
 
 **Altテキストは下記カタログの「Altテキスト」列をそのままコピーしてください（SEO効果あり）。**
@@ -252,6 +268,15 @@
 | portal_group-tab-move.png | グループ（社内システム相談）の右上3点メニューが開いた状態。「編集」「タブ移動」（緑ハイライト）「複製」「削除」の4項目が表示されており、「タブ移動」が選択されている | グループのタブ移動操作の入口説明、グループをタブ間で移動する方法の紹介、方法記事（②③）の操作図解 | ソトバコポータルのグループメニュー。「タブ移動」を選ぶとグループごと別のタブに移動できる |
 | portal_group-tab-move-modal.png | 「別のタブへ移動」モーダル。ポータル上のタブ一覧（営業部・総務部・システム部・申請・承認・社内共有・管理者用）からラジオボタンで移動先を選択し「移動する」ボタンをクリックする画面。「申請・承認」が選択済みの状態 | グループのタブ移動モーダルの説明、移動先タブを一覧から選べることの紹介、方法記事（②③）・7分記事（⑦）のタブ整理操作図解 | ソトバコポータルのグループタブ移動モーダル。ポータル上の全タブから移動先を選択してグループをタブ間で移動できる |
 | portal_group-tab-moved.png | グループのタブ移動後の編集画面。「申請・承認」タブ（赤枠ハイライト）が選択された状態で、「このタブの閲覧権限」パネルと「社内システム相談」グループが移動先のタブに配置されている | グループタブ移動後の完成イメージ、移動後に別タブでグループが確認できることの説明、方法記事（②③）の整理・再配置完了図解 | ソトバコポータルでグループを別タブに移動した状態。申請・承認タブに移動したグループが正常に配置されている |
+
+### partner（パートナー認定バッジ）
+
+| ファイル名 | 何が写っているか | 使いどころ | Altテキスト |
+|-----------|----------------|-----------|------------|
+| partner_normal_tate.png | cybozu Official Partner認定バッジ（縦型）。上部にcybozuロゴ、下部に「Official Partner」の文字が配置された正方形に近いレイアウト | LPのHeroセクションやフッターでの認定バッジ表示、縦方向のスペースが適した配置 | cybozu Official Partner認定バッジ |
+| partner_normal_yoko.png | cybozu Official Partner認定バッジ（横型）。左にcybozuロゴ、右に「Official Partner」の文字が配置された横長レイアウト | LPのHeroセクションでの認定バッジ表示、記事内でのパートナー紹介、横方向のスペースが適した配置 | cybozu Official Partner認定バッジ |
+| partner_product_tate.png | cybozu Official Partner Product認定バッジ（縦型）。上部にcybozuロゴ（オレンジ）、中央に「Official Partner」、下部に「Product」の文字。正方形に近いレイアウト | LPのHeroセクションやフッターでのプロダクトパートナー認定バッジ表示 | cybozu Official Partner Product認定バッジ |
+| partner_product_yoko.png | cybozu Official Partner Product認定バッジ（横型）。左にcybozuロゴ（オレンジ）、右に「Official Partner Product」の文字が配置された横長レイアウト | LPのHeroセクションでのプロダクトパートナー認定バッジ表示（横並び配置） | cybozu Official Partner Product認定バッジ |
 
 ### brand（ブランドロゴ・アイコン）
 

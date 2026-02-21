@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getAllSlugs, getArticleBySlug, getAllArticleSummaries } from "@/lib/articles";
 import { buildArticleMetadata, buildArticleJsonLd } from "@/lib/seo";
+import { EXTERNAL_URLS, IMAGES, MESSAGING } from "@/lib/constants";
 import ArticleBody from "@/components/article/ArticleBody";
 import CtaBanner from "@/components/ui/CtaBanner";
 import SidebarCta from "@/components/sidebar/SidebarCta";
@@ -41,12 +42,12 @@ export default async function ArticlePage({ params }: PageProps) {
           {/* Main content */}
           <article className="min-w-0 flex-1 rounded-lg bg-[#FCFCFC] p-6 lg:p-10">
             {/* Article Header */}
-            <h1 className="text-[28px] font-bold leading-[45px] text-gray-900 lg:text-[36px] lg:leading-[51px]">
+            <h1 className="text-2xl font-bold leading-tight text-gray-900 md:text-3xl md:leading-tight lg:text-4xl lg:leading-tight">
               {article.title}
             </h1>
             {article.publishedAt && (
               <div className="mt-4">
-                <time className="text-sm text-gray-400">
+                <time className="text-xs text-gray-400">
                   {article.publishedAt}
                 </time>
               </div>
@@ -57,12 +58,12 @@ export default async function ArticlePage({ params }: PageProps) {
 
             <div className="mt-10">
               <CtaBanner
-                imageSrc="/images/smartphone_multi-device.png"
+                imageSrc={IMAGES.smartphone}
                 imageAlt="ソトバコポータルのマルチデバイス対応画面"
-                heading="kintoneのポータルを、もっと使いやすく"
-                description="ソトバコポータルなら、ドラッグ&ドロップだけで部署別ポータルを実現できます。フリープランは期間制限なし。最短7分で導入できます。"
-                buttonText="フリープランを試す"
-                buttonHref="https://sotobaco.com/sotobacoportal"
+                heading={MESSAGING.tagline}
+                description={MESSAGING.ctaDescription}
+                buttonText={MESSAGING.ctaButtonText}
+                buttonHref={EXTERNAL_URLS.portal}
               />
             </div>
           </article>

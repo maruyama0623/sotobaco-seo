@@ -11,6 +11,7 @@ jobs:
     outputs:
       blog: ${{ steps.filter.outputs.blog }}
       lp: ${{ steps.filter.outputs.lp }}
+      corporate: ${{ steps.filter.outputs.corporate }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,6 +27,10 @@ jobs:
             lp:
               - 'sites/lp/**'
               - 'images/**'
+            corporate:
+              - 'sites/corporate/**'
+              - 'images/**'
+              - 'packages/**'
 
   deploy-blog:
     needs: detect-changes
@@ -102,5 +107,43 @@ jobs:
           key: ${{ secrets.SFTP_KEY }}
           source: "sites/lp/out/"
           target: ${{ secrets.STAGING_LP_PATH }}
+          strip_components: 3
+          overwrite: true
+
+  deploy-corporate:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.corporate == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: sites/corporate/.nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        working-directory: sites/corporate
+        run: npm run build
+
+      - name: Add robots.txt to block indexing
+        run: |
+          printf "User-agent: *\nDisallow: /\n" > sites/corporate/out/robots.txt
+
+      - name: Deploy to staging
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          port: 8022
+          username: ${{ secrets.SFTP_USERNAME }}
+          key: ${{ secrets.SFTP_KEY }}
+          source: "sites/corporate/out/"
+          target: ${{ secrets.STAGING_CORPORATE_PATH }}
           strip_components: 3
           overwrite: true

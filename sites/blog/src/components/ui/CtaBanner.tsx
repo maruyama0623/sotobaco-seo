@@ -1,4 +1,5 @@
 import Image from "next/image";
+import CtaButton from "@/components/ui/CtaButton";
 
 interface CtaBannerProps {
   imageSrc: string;
@@ -34,7 +35,7 @@ export default function CtaBanner({
 
         {/* Right: Text (60%) */}
         <div className="text-center sm:flex-1 sm:text-left">
-          <p className="text-lg font-bold text-gray-900">{heading}</p>
+          <p className="text-lg font-bold leading-snug text-gray-900">{heading}</p>
           <p className="mt-2 text-sm leading-relaxed text-gray-600">
             {description}
           </p>
@@ -43,14 +44,7 @@ export default function CtaBanner({
 
       {/* Button: Centered */}
       <div className="mt-6 text-center">
-        <a
-          href={buttonHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block rounded-lg bg-brand px-6 py-3 text-sm font-bold text-white transition hover:bg-brand-dark"
-        >
-          {buttonText}
-        </a>
+        <CtaButton href={buttonHref}>{buttonText}</CtaButton>
       </div>
     </div>
   );

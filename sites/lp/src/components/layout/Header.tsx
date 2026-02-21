@@ -3,8 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-
-const SERVICE_URL = "https://app.sotobaco.com";
+import { SERVICE_URL, CORPORATE_URL } from "@/lib/constants";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,15 +11,15 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex max-w-[1200px] items-center justify-between px-4 py-3">
-        <Link href="/" className="flex items-center gap-3">
+        <a href={CORPORATE_URL} className="flex items-center gap-3">
           <Image
-            src="/images/logo-portal-yoko.png"
-            alt="ソトバコポータル"
-            width={180}
+            src="/images/logo/logo-yoko.svg"
+            alt="ソトバコ"
+            width={140}
             height={36}
             className="h-8 w-auto"
           />
-        </Link>
+        </a>
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-8 md:flex">
@@ -44,6 +43,12 @@ export default function Header() {
           >
             操作ガイド
           </a>
+          <Link
+            href="/contact/?category=sotobaco-portal"
+            className="text-sm font-medium text-gray-700 transition hover:text-brand"
+          >
+            お問い合わせ
+          </Link>
           <a
             href={SERVICE_URL}
             target="_blank"
@@ -95,6 +100,13 @@ export default function Header() {
           >
             操作ガイド
           </a>
+          <Link
+            href="/contact/?category=sotobaco-portal"
+            className="block py-3 text-sm font-medium text-gray-700"
+            onClick={() => setIsOpen(false)}
+          >
+            お問い合わせ
+          </Link>
           <a
             href={SERVICE_URL}
             target="_blank"

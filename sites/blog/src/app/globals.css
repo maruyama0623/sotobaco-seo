@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --text-xs: 0.75rem;
+  --leading-xs: 1rem;
+  --text-sm: 0.875rem;
+  --leading-sm: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --text-xs: 15px;
+    --leading-xs: 22px;
+    --text-sm: 15px;
+    --leading-sm: 22px;
+  }
+}
+
 body {
   font-feature-settings: "pkna";
 }
@@ -21,8 +37,8 @@ body {
 /* サムネイルタイトル：フォント設定 */
 .thumbnail-title {
   font-weight: 800;
-  font-size: 1.36rem;
-  line-height: 32px;
+  font-size: 1.1rem;
+  line-height: 28px;
   color: rgb(35, 34, 31);
 }
 
