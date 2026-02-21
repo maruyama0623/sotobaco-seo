@@ -111,7 +111,7 @@ export default function BtonePage() {
       {/* ── Btoneとは？ ── */}
       <SectionWrapper>
         <SectionHeader label="サービス紹介" title="Btoneとは？" />
-        <div className="mt-12 flex flex-col items-center gap-10 lg:flex-row">
+        <div className="mt-10 flex flex-col items-center gap-10 lg:flex-row">
           <div className="flex-1">
             <Image
               src="/images/btone/about_data-flow.png"
@@ -142,7 +142,7 @@ export default function BtonePage() {
       {/* ── こんな課題、ありませんか？ ── */}
       <SectionWrapper>
         <SectionHeader label="よくある課題" title="こんな課題、ありませんか？" />
-        <div className="mt-12 flex flex-col items-center gap-10 md:flex-row md:items-center md:gap-12">
+        <div className="mt-10 flex flex-col items-center gap-10 md:flex-row md:items-center md:gap-12">
           <div className="flex items-center justify-center self-stretch md:w-[40%]">
             <img
               src="/images/btone/hero_problem.webp"
@@ -178,7 +178,7 @@ export default function BtonePage() {
       {/* ── Btoneの特徴 ── */}
       <SectionWrapper>
         <SectionHeader label="選ばれる理由" title="Btoneの特徴" />
-        <div className="mt-12 space-y-8">
+        <div className="mt-10 space-y-8">
           {features.map((f) => (
             <Card key={f.label} className="overflow-hidden">
               <div className="flex flex-col lg:flex-row">
@@ -265,7 +265,7 @@ export default function BtonePage() {
         <SectionHeader label="できること" title="機能一覧" />
 
         {/* 共通機能 */}
-        <h3 className="mt-12 text-center text-lg font-extrabold text-gray-900">すべての連携データで使える共通機能</h3>
+        <h3 className="mt-10 text-center text-lg font-extrabold text-gray-900">すべての連携データで使える共通機能</h3>
         <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[
             {
@@ -367,7 +367,7 @@ export default function BtonePage() {
       {/* ── 導入までの流れ ── */}
       <SectionWrapper bg="gray">
         <SectionHeader label="導入の流れ" title="導入は簡単3ステップで完了！" />
-        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch md:gap-4">
+        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-[1fr_auto_1fr_auto_1fr] md:items-stretch md:gap-4">
           {steps.map((step, i) => (
             <>
               <div
@@ -419,7 +419,7 @@ export default function BtonePage() {
       {/* ── 料金 ── */}
       <SectionWrapper>
         <SectionHeader label="料金プラン" title="料金" />
-        <div className="mx-auto mt-12 max-w-[480px]">
+        <div className="mx-auto mt-10 max-w-[480px]">
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="bg-brand px-6 py-4 text-center text-lg font-extrabold text-white">
               Btone
@@ -443,7 +443,7 @@ export default function BtonePage() {
       {/* ── よくあるご質問 ── */}
       <SectionWrapper bg="gray" maxWidth="800">
         <SectionHeader label="ご不明点はこちら" title="よくあるご質問" />
-        <div className="mt-12 space-y-4">
+        <div className="mt-10 space-y-4">
           {[
             {
               question: "30日間の無料お試しに条件はありますか？",

@@ -1,10 +1,12 @@
 {
   "private": true,
+  "workspaces": ["packages/*", "sites/*"],
   "scripts": {
     "dev": "npm run dev --prefix sites/blog",
     "dev:blog": "npm run dev --prefix sites/blog",
-    "dev:lp": "npm run dev --prefix sites/lp",
     "build": "npm run build --prefix sites/blog",
-    "build:lp": "npm run build --prefix sites/lp"
+    "dev:corporate": "npm run dev --prefix sites/corporate",
+    "dev:all": "npm run dev --prefix sites/corporate & npm run dev --prefix sites/blog & wait",
+    "build:corporate": "npm run build --prefix sites/corporate"
   }
 }

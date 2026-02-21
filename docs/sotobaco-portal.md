@@ -15,6 +15,9 @@
 **無料プラン**: あり（フリープラン、期間制限なし）
 **導入時間**: 最短7分
 **LP URL**: https://sotobaco.com/sotobacoportal
+**アカウント作成URL**: https://portal.sotobaco.com/signup
+**ログインURL**: https://portal.sotobaco.com/login
+**契約情報（アップグレード）URL**: https://portal.sotobaco.com/contract-info/status
 **操作ガイドURL**: https://guide.sotobaco.com/portal/index.html
 
 ### LPのメインメッセージ
@@ -181,7 +184,7 @@ kintoneのデフォルトポータルにある「お知らせ」エリアをカ�
 
 ### 導入手順（最短3ステップ）
 
-1. **アカウント作成** → ソトバコポータルにアクセスしてアカウントを作成
+1. **アカウント作成** → [ソトバコポータル](https://portal.sotobaco.com/signup)にアクセスしてアカウントを作成（アカウント作成時に自動的にフリープラン契約）
 2. **kintone連携設定** → cybozu.com共通管理画面でOAuthクライアントを追加し、クライアントID・シークレットをソトバコポータルに入力して接続（共通管理者権限が必要）
 3. **ポータル設定** → タブ・グループ・アプリカードを追加して「ポータルを更新する」をクリック
 

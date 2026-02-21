@@ -28,7 +28,7 @@ export default async function NewsDetailPage({ params }: Props) {
   if (!article) notFound();
 
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-16 md:py-[60px]">
       <div className="mx-auto max-w-[800px] px-4">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-gray-400">

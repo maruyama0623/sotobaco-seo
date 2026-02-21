@@ -8,13 +8,12 @@ module.exports = {
       },
       fontFamily: {
         sans: [
-          "var(--font-noto-sans-jp)",
-          "YuGothic",
-          "游ゴシック",
+          '"Helvetica Neue"',
+          "Arial",
+          '"Noto Sans JP"',
+          '"Hiragino Kaku Gothic ProN"',
+          '"Hiragino Sans"',
           "Meiryo",
-          "メイリオ",
-          '"Hiragino Kaku Gothic Pro"',
-          "ヒラギノ角ゴシック",
           "sans-serif",
         ],
       },

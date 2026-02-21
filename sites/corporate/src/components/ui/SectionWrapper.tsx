@@ -35,7 +35,7 @@ export default function SectionWrapper({
   return (
     <section
       id={id}
-      className={`py-16 md:py-24 ${bgMap[bg]} ${className}`}
+      className={`py-16 md:py-[60px] ${bgMap[bg]} ${className}`}
     >
       <div
         className={`mx-auto px-4 ${maxWidthMap[maxWidth]} ${center ? "text-center" : ""}`}

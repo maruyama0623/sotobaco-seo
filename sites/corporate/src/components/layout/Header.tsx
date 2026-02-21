@@ -3,10 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { CONTACT_URL, BLOG_URL } from "@/lib/constants";
+import { CONTACT_URL, BLOG_URL, LP_URL } from "@/lib/constants";
+
+const SERVICE_ITEMS = [
+  { label: "ソトバコポータル", href: LP_URL },
+  { label: "Btone", href: "/btone/" },
+];
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isServiceOpen, setIsServiceOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
@@ -23,12 +29,35 @@ export default function Header() {
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-8 md:flex">
-          <Link
-            href="#services"
-            className="text-sm font-medium text-gray-700 transition hover:text-brand"
+          <div
+            className="relative"
+            onMouseEnter={() => setIsServiceOpen(true)}
+            onMouseLeave={() => setIsServiceOpen(false)}
           >
-            サービス
-          </Link>
+            <button
+              className="flex items-center gap-1 text-sm font-medium text-gray-700 transition hover:text-brand"
+            >
+              サービス
+              <svg className={`h-3.5 w-3.5 transition-transform ${isServiceOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {isServiceOpen && (
+              <div className="absolute left-0 top-full pt-2">
+                <div className="min-w-[180px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                  {SERVICE_ITEMS.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="block px-4 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50 hover:text-brand"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
           <Link
             href="/news/"
             className="text-sm font-medium text-gray-700 transition hover:text-brand"
@@ -70,13 +99,31 @@ export default function Header() {
       {/* Mobile menu */}
       {isOpen && (
         <nav className="border-t border-gray-100 bg-white px-4 pb-4 md:hidden">
-          <Link
-            href="#services"
-            className="block py-3 text-sm font-medium text-gray-700"
-            onClick={() => setIsOpen(false)}
-          >
-            サービス
-          </Link>
+          <div>
+            <button
+              className="flex w-full items-center justify-between py-3 text-sm font-medium text-gray-700"
+              onClick={() => setIsServiceOpen(!isServiceOpen)}
+            >
+              サービス
+              <svg className={`h-3.5 w-3.5 transition-transform ${isServiceOpen ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {isServiceOpen && (
+              <div className="pb-1">
+                {SERVICE_ITEMS.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="block py-2.5 pl-4 text-sm text-gray-600"
+                    onClick={() => { setIsOpen(false); setIsServiceOpen(false); }}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
           <Link
             href="/news/"
             className="block py-3 text-sm font-medium text-gray-700"

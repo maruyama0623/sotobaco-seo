@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       blog: ${{ steps.filter.outputs.blog }}
-      lp: ${{ steps.filter.outputs.lp }}
+      corporate: ${{ steps.filter.outputs.corporate }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,8 +24,8 @@ jobs:
               - 'sites/blog/**'
               - 'images/**'
               - 'packages/**'
-            lp:
-              - 'sites/lp/**'
+            corporate:
+              - 'sites/corporate/**'
               - 'images/**'
               - 'packages/**'
 
@@ -67,9 +67,9 @@ jobs:
           strip_components: 3
           overwrite: true
 
-  deploy-lp:
+  deploy-corporate:
     needs: detect-changes
-    if: needs.detect-changes.outputs.lp == 'true'
+    if: needs.detect-changes.outputs.corporate == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -78,19 +78,19 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version-file: sites/lp/.nvmrc
+          node-version-file: sites/corporate/.nvmrc
           cache: npm
-          cache-dependency-path: sites/lp/package-lock.json
+          cache-dependency-path: sites/corporate/package-lock.json
 
       - name: Install dependencies
-        working-directory: sites/lp
+        working-directory: sites/corporate
         run: npm ci
 
       - name: Link shared packages
-        run: ln -s ../sites/lp/node_modules packages/node_modules
+        run: ln -s ../sites/corporate/node_modules packages/node_modules
 
       - name: Build
-        working-directory: sites/lp
+        working-directory: sites/corporate
         run: npm run build
 
       - name: Deploy to production
@@ -100,7 +100,7 @@ jobs:
           port: 8022
           username: ${{ secrets.SFTP_USERNAME }}
           key: ${{ secrets.SFTP_KEY }}
-          source: "sites/lp/out/"
-          target: ${{ secrets.PRODUCTION_SITE_PATH }}/sotobacoportal
+          source: "sites/corporate/out/"
+          target: ${{ secrets.PRODUCTION_SITE_PATH }}
           strip_components: 3
           overwrite: true

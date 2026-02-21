@@ -1,9 +1,9 @@
 import { ReactNode } from "react";
-import { CONTACT_URL } from "@/lib/constants";
+import Link from "next/link";
 
 type Props = {
   children: ReactNode;
-  href?: string;
+  href: string;
   variant?: "primary" | "inverse" | "outline" | "muted";
   size?: "sm" | "md";
   external?: boolean;
@@ -28,19 +28,25 @@ const sizeStyles = {
 
 export default function CtaButton({
   children,
-  href = CONTACT_URL,
+  href,
   variant = "primary",
   size = "md",
   external = false,
   className = "",
 }: Props) {
+  const styles = `inline-flex items-center justify-center rounded-lg font-bold transition ${variantStyles[variant]} ${sizeStyles[size]} ${className}`;
+
+  if (external) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={styles}>
+        {children}
+      </a>
+    );
+  }
+
   return (
-    <a
-      href={href}
-      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      className={`inline-flex items-center justify-center rounded-lg font-bold transition ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
-    >
+    <Link href={href} className={styles}>
       {children}
-    </a>
+    </Link>
   );
 }

@@ -13,7 +13,7 @@ export default function Services() {
         </p>
 
         {/* Main service: ソトバコポータル */}
-        <div className="mt-14">
+        <div className="mt-10">
           <a
             href={LP_URL}
             className="group block overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-lg"

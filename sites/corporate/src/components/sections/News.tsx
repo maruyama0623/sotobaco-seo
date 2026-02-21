@@ -11,7 +11,7 @@ export default function News() {
       <div className="mx-auto max-w-[1200px] px-6">
         <SectionHeader label="NEWS" title="お知らせ" />
 
-        <div className="mt-14">
+        <div className="mt-10">
           {items.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {items.map((item) => (
