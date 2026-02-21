@@ -53,8 +53,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        working-directory: sites/blog
-        run: npm run build
+        run: npm run build -w sites/blog
 
       - name: Add robots.txt to block indexing
         run: |
@@ -91,8 +90,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        working-directory: sites/lp
-        run: npm run build
+        run: npm run build -w sites/lp
 
       - name: Add robots.txt to block indexing
         run: |
@@ -129,8 +127,7 @@ jobs:
         run: npm ci
 
       - name: Build
-        working-directory: sites/corporate
-        run: npm run build
+        run: npm run build -w sites/corporate
 
       - name: Add robots.txt to block indexing
         run: |
