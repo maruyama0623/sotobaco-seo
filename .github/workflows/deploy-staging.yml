@@ -24,9 +24,11 @@ jobs:
             blog:
               - 'sites/blog/**'
               - 'images/**'
+              - 'packages/**'
             lp:
               - 'sites/lp/**'
               - 'images/**'
+              - 'packages/**'
             corporate:
               - 'sites/corporate/**'
               - 'images/**'
@@ -45,10 +47,9 @@ jobs:
         with:
           node-version-file: sites/blog/.nvmrc
           cache: npm
-          cache-dependency-path: sites/blog/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: sites/blog
         run: npm ci
 
       - name: Build
@@ -84,10 +85,9 @@ jobs:
         with:
           node-version-file: sites/lp/.nvmrc
           cache: npm
-          cache-dependency-path: sites/lp/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: sites/lp
         run: npm ci
 
       - name: Build
