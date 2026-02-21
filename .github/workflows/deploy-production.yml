@@ -101,6 +101,6 @@ jobs:
           username: ${{ secrets.SFTP_USERNAME }}
           key: ${{ secrets.SFTP_KEY }}
           source: "sites/lp/out/"
-          target: ${{ secrets.PRODUCTION_LP_PATH }}
+          target: ${{ secrets.PRODUCTION_SITE_PATH }}/sotobacoportal
           strip_components: 3
           overwrite: true

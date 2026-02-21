@@ -114,7 +114,7 @@ jobs:
           username: ${{ secrets.SFTP_USERNAME }}
           key: ${{ secrets.SFTP_KEY }}
           source: "sites/lp/out/"
-          target: ${{ secrets.STAGING_LP_PATH }}
+          target: ${{ secrets.STAGING_SITE_PATH }}/sotobacoportal
           strip_components: 3
           overwrite: true
 
@@ -156,6 +156,6 @@ jobs:
           username: ${{ secrets.SFTP_USERNAME }}
           key: ${{ secrets.SFTP_KEY }}
           source: "sites/corporate/out/"
-          target: ${{ secrets.STAGING_CORPORATE_PATH }}
+          target: ${{ secrets.STAGING_SITE_PATH }}
           strip_components: 3
           overwrite: true

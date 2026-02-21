@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import Link from "next/link";
 import { SERVICE_URL } from "@/lib/constants";
 
 type Props = {
@@ -34,13 +35,19 @@ export default function CtaButton({
   external = true,
   className = "",
 }: Props) {
+  const styles = `inline-flex items-center justify-center rounded-lg font-bold transition ${variantStyles[variant]} ${sizeStyles[size]} ${className}`;
+
+  if (external) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={styles}>
+        {children}
+      </a>
+    );
+  }
+
   return (
-    <a
-      href={href}
-      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      className={`inline-flex items-center justify-center rounded-lg font-bold transition ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
-    >
+    <Link href={href} className={styles}>
       {children}
-    </a>
+    </Link>
   );
 }
