@@ -53,6 +53,9 @@ jobs:
         working-directory: sites/blog
         run: npm ci
 
+      - name: Link shared packages
+        run: ln -s ../sites/blog/node_modules packages/node_modules
+
       - name: Build
         working-directory: sites/blog
         run: npm run build
@@ -92,6 +95,9 @@ jobs:
         working-directory: sites/lp
         run: npm ci
 
+      - name: Link shared packages
+        run: ln -s ../sites/lp/node_modules packages/node_modules
+
       - name: Build
         working-directory: sites/lp
         run: npm run build
@@ -130,6 +136,9 @@ jobs:
       - name: Install dependencies
         working-directory: sites/corporate
         run: npm ci
+
+      - name: Link shared packages
+        run: ln -s ../sites/corporate/node_modules packages/node_modules
 
       - name: Build
         working-directory: sites/corporate
