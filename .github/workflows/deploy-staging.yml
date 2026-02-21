@@ -53,7 +53,10 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build -w sites/blog
+        working-directory: sites/blog
+        run: |
+          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
+          npm run build
 
       - name: Add robots.txt to block indexing
         run: |
@@ -90,7 +93,10 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build -w sites/lp
+        working-directory: sites/lp
+        run: |
+          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
+          npm run build
 
       - name: Add robots.txt to block indexing
         run: |
@@ -127,7 +133,10 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build -w sites/corporate
+        working-directory: sites/corporate
+        run: |
+          export PATH="${GITHUB_WORKSPACE}/node_modules/.bin:${PATH}"
+          npm run build
 
       - name: Add robots.txt to block indexing
         run: |
