@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type FormEvent } from "react";
+import { Suspense, useState, useEffect, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import PageHero from "@/components/ui/PageHero";
 import SectionWrapper from "@/components/ui/SectionWrapper";
@@ -50,7 +50,7 @@ function getInitialCategory(param: string | null): CategoryValue {
   return "other";
 }
 
-export default function ContactPage() {
+function ContactForm() {
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState<FormData>({
     category: "other",
@@ -340,5 +340,13 @@ export default function ContactPage() {
         </form>
       </SectionWrapper>
     </>
+  );
+}
+
+export default function ContactPage() {
+  return (
+    <Suspense>
+      <ContactForm />
+    </Suspense>
   );
 }
