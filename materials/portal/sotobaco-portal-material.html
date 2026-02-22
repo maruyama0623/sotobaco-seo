@@ -360,40 +360,42 @@
     flex-direction: column;
   }
   .usecase-img-wrap {
-    flex: 1;
     background: var(--gray-100);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 16px;
-    min-height: 0;
+    padding: 10px;
+    height: 440px;
+    flex-shrink: 0;
+    overflow: hidden;
   }
   .usecase-img-wrap img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
+    object-position: top;
     border-radius: 8px;
   }
   .usecase-text {
-    padding: 20px 24px;
+    padding: 14px 20px;
     flex-shrink: 0;
   }
   .usecase-label {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--brand);
     letter-spacing: 0.05em;
     margin-bottom: 2px;
   }
   .usecase-text h4 {
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 800;
     color: var(--gray-900);
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
   .usecase-text p {
-    font-size: 20px;
-    line-height: 1.5;
+    font-size: 16px;
+    line-height: 1.4;
     color: var(--gray-600);
   }
 
@@ -1072,17 +1074,17 @@
     <div class="usecases-list">
       <div class="usecase-card">
         <div class="usecase-img-wrap">
-          <img src="../../images/portal/portal_overview.png" alt="業務別タブ整理">
+          <img src="../../images/portal/usecase_task-based.png" alt="業務別タブ整理">
         </div>
         <div class="usecase-text">
           <span class="usecase-label">パターン 01</span>
           <h4>業務別にタブを整理</h4>
-          <p>案件管理・経理・人事など、業務カテゴリごとにタブを分けて整理。担当業務のタブを開くだけで、必要なアプリがすぐ見つかります。</p>
+          <p>仕入・在庫、受注・出荷、顧客対応など、業務の流れごとにタブを分けて整理。部署に関係なく、今やる業務のタブを開くだけで必要なアプリがすぐ見つかります。</p>
         </div>
       </div>
       <div class="usecase-card">
         <div class="usecase-img-wrap">
-          <img src="../../images/portal/tab_permission-compare.png" alt="部署別タブ見せ分け">
+          <img src="../../images/portal/usecase_department.png" alt="部署別タブ見せ分け">
         </div>
         <div class="usecase-text">
           <span class="usecase-label">パターン 02</span>
@@ -1110,17 +1112,17 @@
     <div class="usecases-list">
       <div class="usecase-card">
         <div class="usecase-img-wrap">
-          <img src="../../images/portal/portal_overview.png" alt="プロジェクト別タブ">
+          <img src="../../images/portal/usecase_client-based.png" alt="取引先別タブ管理">
         </div>
         <div class="usecase-text">
           <span class="usecase-label">パターン 03</span>
-          <h4>プロジェクト別にタブを管理</h4>
-          <p>新規事業・システム導入など、プロジェクト単位でタブを作成。関連アプリ・スペースリンク・資料をひとつのタブに集約できます。</p>
+          <h4>取引先別にタブを管理</h4>
+          <p>取引先やクライアントごとにタブを作成。関連するアプリ・資料・外部リンクをひとつのタブに集約でき、担当する取引先の情報にすぐアクセスできます。</p>
         </div>
       </div>
       <div class="usecase-card">
         <div class="usecase-img-wrap">
-          <img src="../../images/portal/space_overview.png" alt="全社共有+部署ポータル">
+          <img src="../../images/portal/usecase_space-portal.png" alt="全社共有+部署ポータル">
         </div>
         <div class="usecase-text">
           <span class="usecase-label">パターン 04</span>
@@ -1146,7 +1148,7 @@
   </div>
   <div class="slide-body">
     <div class="feature-detail">
-      <div class="feature-detail-img-wrap"><img src="../../images/portal/portal_overview.png" alt="タブ整理画面"></div>
+      <div class="feature-detail-img-wrap"><img src="../../images/portal/portal_tab-organized.png" alt="タブ整理画面"></div>
       <div class="feature-detail-text">
         <div class="feature-detail-plans"><span class="plan-badge">フリー</span><span class="plan-badge">ライト</span><span class="plan-badge">スタンダード</span></div>
         <h3>タブでアプリを簡単整理</h3>
@@ -1355,7 +1357,7 @@
   </div>
   <div class="slide-body">
     <div class="feature-detail">
-      <div class="feature-detail-img-wrap"><img src="../../images/portal/smartphone_app.png" alt="スマートフォン対応画面"></div>
+      <div class="feature-detail-img-wrap"><img src="../../images/portal/smartphone_hand.png" alt="スマートフォンでソトバコポータルを操作する様子"></div>
       <div class="feature-detail-text">
         <div class="feature-detail-plans"><span class="plan-badge">フリー</span><span class="plan-badge">ライト</span><span class="plan-badge">スタンダード</span></div>
         <h3>スマホでも快適なポータル</h3>
@@ -1821,7 +1823,7 @@
       </div>
       <a href="https://portal.sotobaco.com/signup" class="cta-btn">今すぐ無料お試しをする</a>
       <div class="cta-contact">
-        <p>ご質問やお見積り、導入相談は下記よりお問い合わせください。</p>
+        <p>ご質問や導入相談は下記よりお問い合わせください。</p>
         <a href="https://sotobaco.com/sotobacoportal/contact">https://sotobaco.com/sotobacoportal/contact</a>
       </div>
     </div>

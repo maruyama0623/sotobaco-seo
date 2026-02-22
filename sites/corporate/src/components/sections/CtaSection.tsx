@@ -87,12 +87,12 @@ export default function CtaSection({
               ))}
             </ul>
 
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a
                 href={SERVICE_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-3 rounded-lg bg-brand px-8 py-4 text-sm font-bold text-white shadow-lg transition hover:bg-brand-dark hover:shadow-xl"
+                className="inline-flex items-center justify-center gap-3 rounded-lg bg-brand px-8 py-4 text-sm font-bold text-white shadow-lg transition hover:bg-brand-dark hover:shadow-xl"
               >
                 {buttonText}
                 <svg
@@ -108,6 +108,12 @@ export default function CtaSection({
                     d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"
                   />
                 </svg>
+              </a>
+              <a
+                href="/sotobacoportal/material/"
+                className="inline-flex items-center justify-center gap-3 rounded-lg border border-brand px-8 py-4 text-sm font-bold text-brand transition hover:bg-brand/5"
+              >
+                資料ダウンロード
               </a>
             </div>
 

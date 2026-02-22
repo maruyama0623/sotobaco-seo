@@ -26,7 +26,7 @@ export default function FeatureCard({
         hoverable ? "transition hover:shadow-md" : ""
       }`}
     >
-      <div className="bg-gray-50 p-4">
+      <div className="flex items-center justify-center bg-gray-50 p-4">
         <ImageZoom
           src={image}
           alt={imageAlt}

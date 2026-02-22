@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
 import SectionWrapper from "@/components/ui/SectionWrapper";
 import SectionHeader from "@/components/ui/SectionHeader";
 
@@ -7,8 +10,8 @@ const patterns = [
     label: "パターン 01",
     title: "業務別にタブを整理",
     description:
-      "案件管理・経理・人事など、業務カテゴリごとにタブを分けて整理。担当業務のタブを開くだけで、必要なアプリがすぐ見つかります。",
-    image: "/images/no_image.jpg",
+      "仕入・在庫、受注・出荷、顧客対応など、業務の流れごとにタブを分けて整理。部署に関係なく、今やる業務のタブを開くだけで必要なアプリがすぐ見つかります。",
+    image: "/images/portal/usecase_task-based.png",
     imageAlt: "業務別にタブを整理したソトバコポータルの画面例",
   },
   {
@@ -16,30 +19,32 @@ const patterns = [
     title: "部署別にタブを見せ分け",
     description:
       "営業部・総務部・経理部など、部署ごとに閲覧権限を設定。自分の部署に関係のあるタブだけが表示されるので、アプリを探す手間がなくなります。",
-    image: "/images/portal/tab_permission-compare.png",
+    image: "/images/portal/usecase_department.png",
     imageAlt:
       "部署別に閲覧権限を設定したソトバコポータルの画面例。営業部と総務部で表示が異なる",
   },
   {
     label: "パターン 03",
-    title: "プロジェクト別にタブを管理",
+    title: "取引先別にタブを管理",
     description:
-      "新規事業・システム導入・採用プロジェクトなど、プロジェクト単位でタブを作成。関連アプリ・スペースリンク・資料をひとつのタブに集約できます。",
-    image: "/images/no_image.jpg",
-    imageAlt: "プロジェクト別にタブを管理しているソトバコポータルの画面例",
+      "取引先やクライアントごとにタブを作成。関連するアプリ・資料・外部リンクをひとつのタブに集約でき、担当する取引先の情報にすぐアクセスできます。",
+    image: "/images/portal/usecase_client-based.png",
+    imageAlt: "取引先別にタブを管理しているソトバコポータルの画面例",
   },
   {
     label: "パターン 04",
     title: "全社共有 + 部署ポータル",
     description:
       "メインポータルには全社アナウンスやスペースリンクなど共通情報だけを配置。部署ごとの業務アプリはスペース単位ポータルで管理し、情報を分離できます。",
-    image: "/images/portal/space_overview.png",
+    image: "/images/portal/usecase_space-portal.png",
     imageAlt:
       "全社共有ポータルとスペース単位の部署ポータルを組み合わせた活用例",
   },
 ];
 
 export default function UseCases() {
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
   return (
     <SectionWrapper bg="gray">
       <SectionHeader
@@ -53,15 +58,19 @@ export default function UseCases() {
             key={pattern.label}
             className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
           >
-            <div className="bg-gray-50 p-4">
+            <button
+              type="button"
+              className="relative aspect-square w-full cursor-zoom-in bg-gray-50"
+              onClick={() => setLightbox(pattern.image)}
+            >
               <Image
                 src={pattern.image}
                 alt={pattern.imageAlt}
-                width={640}
-                height={400}
-                className="h-[220px] w-full rounded-lg object-contain object-center md:h-[260px]"
+                fill
+                className="rounded-t-2xl object-cover object-top"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
-            </div>
+            </button>
             <div className="p-6">
               <span className="text-xs font-bold tracking-wider text-brand">
                 {pattern.label}
@@ -76,6 +85,29 @@ export default function UseCases() {
           </div>
         ))}
       </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            type="button"
+            className="absolute right-4 top-4 text-3xl text-white hover:text-gray-300"
+            onClick={() => setLightbox(null)}
+          >
+            &times;
+          </button>
+          <div className="relative max-h-[90vh] max-w-[90vw]">
+            <img
+              src={lightbox}
+              alt=""
+              className="max-h-[90vh] max-w-[90vw] rounded-lg object-contain"
+            />
+          </div>
+        </div>
+      )}
     </SectionWrapper>
   );
 }

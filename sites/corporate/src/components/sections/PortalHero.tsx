@@ -39,8 +39,8 @@ export default function PortalHero() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
             <CtaButton href={SERVICE_URL} external>フリープランを始める（無料）</CtaButton>
-            <CtaButton href="/sotobacoportal/features/" variant="outline" external={false}>
-              機能を見る
+            <CtaButton href="/sotobacoportal/material/" variant="outline" external={false}>
+              資料ダウンロード
             </CtaButton>
           </div>
         </div>

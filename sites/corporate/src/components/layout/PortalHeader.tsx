@@ -22,7 +22,13 @@ export default function PortalHeader() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-8 md:flex">
+        <nav className="hidden items-center gap-6 md:flex">
+          <Link
+            href="/sotobacoportal/"
+            className="text-sm font-medium text-gray-700 transition hover:text-brand"
+          >
+            TOP
+          </Link>
           <Link
             href="/sotobacoportal/features/"
             className="text-sm font-medium text-gray-700 transition hover:text-brand"
@@ -49,14 +55,22 @@ export default function PortalHeader() {
           >
             お問い合わせ
           </Link>
-          <a
-            href={SERVICE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg bg-brand px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-dark"
-          >
-            フリープランを試す
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href={SERVICE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-lg bg-brand px-5 py-2.5 text-sm font-bold text-white transition hover:bg-brand-dark"
+            >
+              フリープランを試す
+            </a>
+            <Link
+              href="/sotobacoportal/material/"
+              className="rounded-lg border border-brand px-5 py-2.5 text-sm font-bold text-brand transition hover:bg-brand/5"
+            >
+              資料ダウンロード
+            </Link>
+          </div>
         </nav>
 
         {/* Mobile hamburger */}
@@ -79,6 +93,13 @@ export default function PortalHeader() {
       {isOpen && (
         <nav className="border-t border-gray-100 bg-white px-4 pb-4 md:hidden">
           <Link
+            href="/sotobacoportal/"
+            className="block py-3 text-sm font-medium text-gray-700"
+            onClick={() => setIsOpen(false)}
+          >
+            TOP
+          </Link>
+          <Link
             href="/sotobacoportal/features/"
             className="block py-3 text-sm font-medium text-gray-700"
             onClick={() => setIsOpen(false)}
@@ -106,6 +127,13 @@ export default function PortalHeader() {
             onClick={() => setIsOpen(false)}
           >
             お問い合わせ
+          </Link>
+          <Link
+            href="/sotobacoportal/material/"
+            className="mt-2 block rounded-lg border border-brand px-5 py-3 text-center text-sm font-bold text-brand"
+            onClick={() => setIsOpen(false)}
+          >
+            資料ダウンロード
           </Link>
           <a
             href={SERVICE_URL}

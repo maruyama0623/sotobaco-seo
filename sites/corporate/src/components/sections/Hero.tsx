@@ -1,37 +1,50 @@
+import Image from "next/image";
+import Link from "next/link";
+
 export default function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white via-brand-light to-white">
-      <div className="mx-auto flex max-w-[1200px] flex-col items-center gap-12 px-6 py-20 md:py-28 lg:flex-row lg:py-32">
+    <section className="relative overflow-hidden bg-white">
+      <div className="flex min-h-[520px] flex-col lg:flex-row">
         {/* Left: Text */}
-        <div className="flex-1 text-center lg:text-left">
-          <h1 className="text-3xl font-extrabold leading-relaxed text-gray-900 md:text-4xl md:leading-relaxed lg:text-5xl lg:leading-relaxed">
+        <div className="flex flex-1 flex-col justify-center px-6 py-16 md:px-12 lg:py-24 lg:pl-[max(2.5rem,calc((100vw-1400px)/2+2.5rem))] lg:pr-12">
+          <h1 className="text-4xl font-extrabold leading-[1.6] tracking-tight text-gray-900 md:text-5xl md:leading-[1.6] lg:text-6xl lg:leading-[1.6]">
             すべての働く人が
             <br />
             <span className="text-brand">DXの恩恵を受ける</span>
             <br />
             社会にする
           </h1>
-          <p className="mt-6 text-base leading-relaxed text-gray-600 md:text-lg">
-            株式会社ソトバコは、kintoneを中心としたクラウドサービスの活用支援を通じて、
+          <p className="mt-8 text-base leading-relaxed text-gray-600 md:text-lg">
+            株式会社ソトバコは、kintoneを中心とした
+            <br className="hidden md:inline" />
+            クラウドサービスの活用支援を通じて、
             <br className="hidden md:inline" />
             企業のデジタル変革を支えるプロダクトを開発・提供しています。
           </p>
+          <div className="mt-10">
+            <Link
+              href="/company/"
+              className="inline-flex items-center gap-4 rounded-full bg-gray-900 px-8 py-4 text-base font-bold text-white transition hover:bg-gray-700"
+            >
+              私たちについて
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+              </svg>
+            </Link>
+          </div>
         </div>
 
-        {/* Right: Abstract visual */}
-        <div className="flex flex-1 items-center justify-center">
-          <div className="relative h-64 w-full max-w-md md:h-80">
-            {/* Decorative circles */}
-            <div className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/10 md:h-64 md:w-64" />
-            <div className="absolute left-1/3 top-1/3 h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand/20 md:h-44 md:w-44" />
-            <div className="absolute bottom-1/4 right-1/4 h-24 w-24 rounded-full bg-brand/15 md:h-32 md:w-32" />
-            {/* Center icon */}
-            <div className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-2xl bg-brand shadow-lg md:h-24 md:w-24">
-              <svg className="h-10 w-10 text-white md:h-12 md:w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
-              </svg>
-            </div>
-          </div>
+        {/* Right: Hero image — edge to edge */}
+        <div className="relative lg:w-[50%]">
+          <Image
+            src="/images/corporate/hero.jpg"
+            alt="都市の風景"
+            fill
+            className="object-cover"
+            priority
+            sizes="(max-width: 1024px) 100vw, 50vw"
+          />
+          <div className="aspect-[16/9] lg:hidden" />
         </div>
       </div>
     </section>

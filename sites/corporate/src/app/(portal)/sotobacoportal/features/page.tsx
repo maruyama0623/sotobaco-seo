@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { buildPortalPageMetadata } from "@/lib/seo";
 import { featureSections, otherFeatures } from "@/lib/portal-data";
 import PageHero from "@/components/ui/PageHero";
@@ -9,6 +8,7 @@ import PlanBadge from "@/components/ui/PlanBadge";
 import CheckList from "@/components/ui/CheckList";
 import FeatureCard from "@/components/ui/FeatureCard";
 import ArrowLink from "@/components/ui/ArrowLink";
+import ImageZoom from "@/components/ui/ImageZoom";
 import CtaSection from "@/components/sections/CtaSection";
 import CtaCards from "@/components/sections/CtaCards";
 
@@ -54,8 +54,8 @@ export default function FeaturesPage() {
                 <CheckList items={section.details} size="md" />
               </div>
             </div>
-            <div className="flex-1">
-              <Image
+            <div className="flex flex-1 items-center justify-center">
+              <ImageZoom
                 src={section.image}
                 alt={section.imageAlt}
                 width={560}
