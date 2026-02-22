@@ -10,12 +10,27 @@ export interface Env {
 /* ── Select options (allowlists) ── */
 
 const INDUSTRY_OPTIONS = [
-  "製造業",
-  "IT・情報通信",
+  "IT・ソフトウェア",
+  "製造",
   "建設・不動産",
-  "サービス業",
-  "卸売・小売",
+  "食品・飲料",
+  "医療・福祉",
+  "教育・学校",
   "金融・保険",
+  "小売・流通",
+  "人材・派遣",
+  "広告・メディア",
+  "士業・コンサルティング",
+  "官公庁・自治体",
+  "その他",
+];
+
+const POSITION_OPTIONS = [
+  "経営者・役員",
+  "部長・マネージャー",
+  "課長・リーダー",
+  "一般社員",
+  "情報システム担当",
   "その他",
 ];
 
@@ -67,6 +82,7 @@ interface MaterialBody {
   company: string;
   name: string;
   email: string;
+  position: string;
   industry: string;
   companySize: string;
   purpose: string;
@@ -174,6 +190,12 @@ async function sendSlackNotification(
         { type: "mrkdwn", text: `*会社名:*\n${data.company}` },
         { type: "mrkdwn", text: `*お名前:*\n${data.name}` },
         { type: "mrkdwn", text: `*メールアドレス:*\n${data.email}` },
+        { type: "mrkdwn", text: `*役職:*\n${data.position}` },
+      ],
+    },
+    {
+      type: "section",
+      fields: [
         { type: "mrkdwn", text: `*業種・業態:*\n${data.industry}` },
       ],
     },
@@ -255,8 +277,14 @@ async function handleDownload(
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const origin = env.CORS_ORIGIN || "https://sotobaco.com";
-    const headers = corsHeaders(origin);
+    const allowedOrigins = (env.CORS_ORIGIN || "https://sotobaco.com")
+      .split(",")
+      .map((o) => o.trim());
+    const requestOrigin = request.headers.get("Origin") || "";
+    const matchedOrigin = allowedOrigins.includes(requestOrigin)
+      ? requestOrigin
+      : allowedOrigins[0];
+    const headers = corsHeaders(matchedOrigin);
     const url = new URL(request.url);
 
     // Download endpoint (no CORS — direct browser access)
@@ -303,6 +331,9 @@ export default {
     } else if (!isValidEmail(body.email)) {
       errors.push("メールアドレスの形式が不正です");
     }
+    if (!body.position?.trim() || !isValidOption(body.position, POSITION_OPTIONS)) {
+      errors.push("役職を選択してください");
+    }
     if (!body.industry?.trim() || !isValidOption(body.industry, INDUSTRY_OPTIONS)) {
       errors.push("業種・業態を選択してください");
     }
@@ -337,6 +368,7 @@ export default {
       company: body.company.trim(),
       name: body.name.trim(),
       email: body.email.trim(),
+      position: body.position.trim(),
       industry: body.industry.trim(),
       companySize: body.companySize.trim(),
       purpose: body.purpose.trim(),
