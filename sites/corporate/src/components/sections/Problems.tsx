@@ -25,7 +25,11 @@ export default function Problems() {
         {/* Problem list — right */}
         <div className="w-full md:w-[55%]">
           <p className="text-sm leading-relaxed text-gray-700">
-            kintoneのアプリが増えるにつれて、ポータルが使いにくくなっていませんか？「どこに何があるかわからない」「社員から問い合わせが絶えない」——そんな課題を抱えるkintone管理者の方は少なくありません。
+            kintoneのアプリが増えるにつれて、ポータルが使いにくくなっていませんか？
+            <br />
+            「どこに何があるかわからない」「社員から問い合わせが絶えない」——
+            <br />
+            そんな課題を抱えるkintone管理者の方は少なくありません。
           </p>
         <div className="mt-5 rounded-xl border-2 border-gray-300 px-8 py-6">
           <ol className="space-y-4">
