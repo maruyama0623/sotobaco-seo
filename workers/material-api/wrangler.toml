@@ -1,0 +1,19 @@
+name = "material-api"
+main = "src/index.ts"
+compatibility_date = "2024-05-12"
+
+# KV namespace for download tokens (72h TTL)
+[[kv_namespaces]]
+binding = "DOWNLOAD_TOKENS"
+id = "bd3f3d2a51db455e8f1b19d844f3cf36"
+
+# R2 bucket for PDF storage
+[[r2_buckets]]
+binding = "MATERIAL_BUCKET"
+bucket_name = "sotobaco-material"
+
+# Secrets (set via `wrangler secret put`):
+# - SENDGRID_API_KEY
+# - SLACK_WEBHOOK_URL
+# - FROM_EMAIL
+# - CORS_ORIGIN

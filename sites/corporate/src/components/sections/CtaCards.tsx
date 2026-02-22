@@ -59,7 +59,7 @@ const cards: CtaCard[] = [
     description:
       "ソトバコポータルを気軽に知ることができる資料をご用意しています。",
     cta: "資料ダウンロード",
-    href: "https://sotobaco.com/sotobacoportal/material",
+    href: "/sotobacoportal/material/",
     variant: "outline",
   },
 ];

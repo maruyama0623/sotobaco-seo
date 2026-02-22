@@ -19,13 +19,13 @@ export default function Services() {
             className="group block overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition hover:shadow-lg"
           >
             <div className="flex flex-col lg:flex-row">
-              <div className="flex items-center justify-center bg-brand-light p-8 lg:w-1/2 lg:p-12">
+              <div className="flex items-center justify-center bg-brand-light p-6 lg:w-[55%] lg:p-8">
                 <Image
-                  src="/images/portal/portal_overview.png"
-                  alt="ソトバコポータルの管理画面。タブでアプリを整理し、部署ごとに表示"
-                  width={560}
-                  height={350}
-                  className="rounded-lg shadow-md"
+                  src="/images/portal/smartphone_multi-device.png"
+                  alt="ソトバコポータル。PC・タブレット・スマートフォンのマルチデバイス対応"
+                  width={720}
+                  height={410}
+                  className="w-full max-w-[640px]"
                 />
               </div>
               <div className="flex flex-1 flex-col justify-center p-8 lg:p-12">

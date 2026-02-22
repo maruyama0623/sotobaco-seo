@@ -8,3 +8,6 @@ export const BTONE_SIGNUP_URL = "https://app.sotobaco.com/signup";
 
 export const CONTACT_API_URL =
   process.env.NEXT_PUBLIC_CONTACT_API_URL || "https://contact-api.sotobaco.workers.dev";
+
+export const MATERIAL_API_URL =
+  process.env.NEXT_PUBLIC_MATERIAL_API_URL || "https://material-api.sotobaco.workers.dev";
