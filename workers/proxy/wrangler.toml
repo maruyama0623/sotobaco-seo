@@ -1,0 +1,20 @@
+name = "proxy"
+main = "src/index.ts"
+compatibility_date = "2024-05-12"
+
+# Secrets (set via `wrangler secret put`):
+# - ANTHROPIC_API_KEY
+# - PROXY_TOKEN
+# - GA_CLIENT_EMAIL (GA4設定後)
+# - GA_PRIVATE_KEY (GA4設定後)
+# - GA_PROJECT_ID (GA4設定後)
+# - GA_PROPERTY_ID_BLOG (GA4設定後)
+# - GA_PROPERTY_ID_SITE (GA4設定後)
+
+# 6時間ごとにガイド・ブログ・LPをクロール → KVに保存
+[triggers]
+crons = ["0 0,6,12,18 * * *"]
+
+[[kv_namespaces]]
+binding = "PAGE_CACHE"
+id = "59cdeae5fb584301b725ddea5c707236"
