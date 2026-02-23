@@ -4,6 +4,26 @@ compatibility_date = "2024-05-12"
 
 # Secrets (set via `wrangler secret put`):
 # - SENDGRID_API_KEY
-# - SLACK_WEBHOOK_URL
 # - FROM_EMAIL
+# - REPLY_TO_EMAIL (support@sotobaco.co.jp)
 # - CORS_ORIGIN
+# - ANTHROPIC_API_KEY
+# - REPLY_WEBHOOK_SECRET
+# - SLACK_BOT_TOKEN (xoxb-...)
+# - SLACK_SIGNING_SECRET
+# - SLACK_CHANNEL_ID
+# - SLACK_WEBHOOK_URL (legacy, optional fallback)
+# - KINTONE_SUBDOMAIN (e.g. "sotobaco")
+# - KINTONE_APP_ID_93 (問い合わせ管理アプリ - 親)
+# - KINTONE_APP_ID_94 (問い合わせ明細アプリ - 子)
+# - KINTONE_API_TOKEN_93 (App 93 用 APIトークン)
+# - KINTONE_API_TOKEN_94 (App 94 用 APIトークン)
+# - TITLE_PROXY_URL (https://sotobaco.onrender.com)
+
+# 毎週月曜 10:00 JST (= 01:00 UTC) に学習分析レポートをSlack送信
+[triggers]
+crons = ["0 1 * * 1"]
+
+[[kv_namespaces]]
+binding = "THREAD_MAP"
+id = "ff293d93cd2843bf9a412ae1bbd72558"
