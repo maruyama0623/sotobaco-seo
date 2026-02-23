@@ -1,0 +1,14 @@
+{
+  "name": "title-summary-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@google-analytics/data": "^5.2.1",
+    "express": "^4.21.2"
+  }
+}
