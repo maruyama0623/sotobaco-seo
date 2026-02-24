@@ -29,7 +29,7 @@ workers/support-api/src/
   utils.ts      — sanitize, corsHeaders, isValidEmail
   kintone.ts    — kintone CRUD・ID生成・類似Q&A検索
   email.ts      — SendGrid送信・メール解析（引用除去・アドレス抽出）
-  ai.ts         — SERVICE_CONTEXT・AIプロンプト・回答案生成・関連ページ取得
+  ai.ts         — AIプロンプト構築・回答案生成・関連ページ取得・docs動的取得
   slack.ts      — Slack署名検証・メッセージ送信/更新・Block Kit構築・インタラクション
   contact.ts    — handleContact（お問い合わせフォーム受付）
   reply.ts      — handleReply（メール返信処理）
@@ -61,7 +61,7 @@ support-api Worker
   ├→ kintone: App 93（親）+ App 94（明細）にレコード作成
   ├→ proxy Worker: 関連ページ取得（/relevant-pages）
   ├→ kintone App 94: 類似Q&A検索
-  └→ Anthropic API: AI回答案生成（SERVICE_CONTEXT + 類似Q&A + 関連ページURL）
+  └→ Anthropic API: AI回答案生成（GitHub docs + 類似Q&A + 関連ページURL）
        ↓
      Slack通知（回答案 + 送信/編集ボタン）
        ↓
@@ -90,9 +90,11 @@ support-api /reply エンドポイント
 
 | 情報源 | 内容 | 取得元 |
 |--------|------|--------|
-| SERVICE_CONTEXT | サービス仕様・価格・FAQ（ai.ts内に埋め込み） | `workers/support-api/src/ai.ts` |
+| サービスドキュメント | サービス仕様・価格・FAQ・会社情報 | GitHub API（developブランチの `docs/sotobaco-portal.md` + `docs/btone.md` + `docs/company.md`） |
 | 類似Q&A | kintoneに蓄積された過去の問い合わせ＋回答 | kintone App 94 |
 | 関連ページ | 操作ガイド・ブログ記事・LPから関連ページURL | proxy Worker `/relevant-pages` |
+
+> docsの動的取得により、ドキュメントを更新すれば再デプロイなしでAI回答案に反映される。GitHub API取得に失敗した場合はAI回答案の生成をスキップし、Slack通知のみ行う（手動対応）。
 
 ### kintone連携
 
@@ -121,6 +123,8 @@ support-api /reply エンドポイント
 | KINTONE_SUBDOMAIN | kintoneサブドメイン |
 | KINTONE_APP_ID_93 / 94 | kintoneアプリID |
 | KINTONE_API_TOKEN_93 / 94 | kintone APIトークン |
+| GITHUB_TOKEN | GitHub APIトークン（docs動的取得 + 学習コミット） |
+| GITHUB_REPO | GitHubリポジトリ（owner/repo形式） |
 
 ### KV Namespace
 

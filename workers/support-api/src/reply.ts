@@ -1,6 +1,6 @@
 import type { Env, ReplyBody, SlackActionMeta, ThreadMapValue } from "./types";
 import { stripQuotedContent, extractEmail, extractName } from "./email";
-import { AI_SYSTEM_PROMPT_REPLY, generateAiDraft, fetchRelevantPages } from "./ai";
+import { fetchServiceContext, buildReplyPrompt, generateAiDraft, fetchRelevantPages } from "./ai";
 import { fetchSimilarAnswers, isKintoneEnabled, toKintoneDate, createKintoneRecord } from "./kintone";
 import { buildSummaryBlocks, buildContentBlocks, buildAiDraftBlocks, sendSlackMessage } from "./slack";
 
@@ -39,13 +39,15 @@ export async function handleReply(request: Request, env: Env): Promise<Response>
 
     const aiResult = env.ANTHROPIC_API_KEY
       ? await (async () => {
-          const [pastQA, relevantPages] = await Promise.all([
+          const [serviceContext, pastQA, relevantPages] = await Promise.all([
+            fetchServiceContext(env),
             fetchSimilarAnswers(env, strippedBody),
             fetchRelevantPages(env, strippedBody),
           ]);
+          if (!serviceContext) return null;
           return generateAiDraft(
             env,
-            AI_SYSTEM_PROMPT_REPLY,
+            buildReplyPrompt(serviceContext),
             userMessage,
             pastQA,
             relevantPages

@@ -447,7 +447,7 @@ export async function handleLearningModalSubmit(
 }
 
 /** GitHub Contents API でファイル読み取り */
-async function getFileFromGitHub(
+export async function getFileFromGitHub(
   env: Env,
   filePath: string
 ): Promise<{ content: string; sha: string }> {

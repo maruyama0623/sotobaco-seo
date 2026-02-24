@@ -3,7 +3,7 @@
 このファイルは、ソトバコポータルに関する記事執筆およびカスタマーサポートAIの情報源です。
 会社情報・共通URLは `docs/company.md` を参照してください。
 
-> **重要**: このファイルの機能・仕様・価格・FAQを更新した場合は、`workers/support-api/src/ai.ts` の `SERVICE_CONTEXT` も必ず同期更新すること。SERVICE_CONTEXTはお問い合わせAI回答案の生成に使われるため、ここの情報が古いと誤った回答案が生成される。
+> **情報**: AI回答案（support-api Worker）は実行時にこのファイルをGitHub APIから自動取得するため、`SERVICE_CONTEXT` の手動同期は不要です。このファイルを更新すれば、次回のお問い合わせから最新情報がAI回答案に反映されます。
 
 ---
 

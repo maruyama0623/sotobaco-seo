@@ -2,7 +2,7 @@ import type { Env, ContactBody, AiResult, SlackActionMeta, ThreadMapValue } from
 import { CATEGORY_LABELS } from "./types";
 import { isValidEmail } from "./utils";
 import { sendAutoReplyEmail } from "./email";
-import { AI_SYSTEM_PROMPT_CONTACT, generateAiDraft, fetchRelevantPages } from "./ai";
+import { fetchServiceContext, buildContactPrompt, generateAiDraft, fetchRelevantPages } from "./ai";
 import {
   fetchSimilarAnswers,
   isKintoneEnabled,
@@ -72,13 +72,15 @@ export async function handleContact(
       sendAutoReplyEmail(env, sanitizedData),
       env.ANTHROPIC_API_KEY
         ? (async () => {
-            const [pastQA, relevantPages] = await Promise.all([
+            const [serviceContext, pastQA, relevantPages] = await Promise.all([
+              fetchServiceContext(env),
               fetchSimilarAnswers(env, sanitizedData.message),
               fetchRelevantPages(env, sanitizedData.message),
             ]);
+            if (!serviceContext) return null;
             return generateAiDraft(
               env,
-              AI_SYSTEM_PROMPT_CONTACT,
+              buildContactPrompt(serviceContext),
               userMessage,
               pastQA,
               relevantPages
