@@ -1,6 +1,7 @@
-import type { Env, AiResult, SlackActionMeta, ThreadMapValue } from "./types";
+import type { Env, AiResult, SlackActionMeta, ThreadMapValue, LearningMeta } from "./types";
 import { sendDraftEmail, parseDraftContent } from "./email";
 import { updateKintoneRecord, isKintoneEnabled, toKintoneDate } from "./kintone";
+import { buildCompleteButton, handleLearningComplete, populateLearningModal, handleLearningModalSubmit } from "./learning";
 
 async function verifySlackSignature(
   signingSecret: string,
@@ -73,12 +74,14 @@ export async function sendSlackMessage(
   return null;
 }
 
-/** メッセージを「送信済み」に更新（ボタン削除 + ステータス追加） */
+/** メッセージを「送信済み」に更新（ボタン削除 + ステータス追加 + 完了ボタン） */
 async function updateSlackMessageSent(
   env: Env,
   channel: string,
   ts: string,
-  originalBlocks: Array<Record<string, unknown>>
+  originalBlocks: Array<Record<string, unknown>>,
+  threadTs: string,
+  category?: string
 ): Promise<void> {
   const updatedBlocks = originalBlocks
     .filter((b) => b.type !== "actions")
@@ -102,6 +105,15 @@ async function updateSlackMessageSent(
       text: "お問い合わせ通知（送信済み）",
     }),
   });
+
+  // 「完了」ボタンをスレッドに追加
+  const meta: LearningMeta = {
+    threadTs,
+    messageTs: ts,
+    messageChannel: channel,
+    category,
+  };
+  await sendSlackMessage(env, [buildCompleteButton(meta)], threadTs);
 }
 
 /** メッセージのボタン部分にエラー表示 */
@@ -157,15 +169,12 @@ function extractDraftFromBlocks(
   return "";
 }
 
-export function buildSlackBlocks(
+/** 親メッセージ用ブロック（ヘッダー + 基本情報フィールド） */
+export function buildSummaryBlocks(
   headerText: string,
-  fields: Array<{ label: string; value: string }>,
-  messageLabel: string,
-  messageText: string,
-  aiResult: AiResult | null,
-  actionMeta: SlackActionMeta | null
+  fields: Array<{ label: string; value: string }>
 ): Array<Record<string, unknown>> {
-  const blocks: Array<Record<string, unknown>> = [
+  return [
     {
       type: "header",
       text: { type: "plain_text", text: headerText, emoji: true },
@@ -177,16 +186,31 @@ export function buildSlackBlocks(
         text: `*${f.label}:*\n${f.value}`,
       })),
     },
+    { type: "divider" },
+  ];
+}
+
+/** スレッド返信1用ブロック（問い合わせ内容） */
+export function buildContentBlocks(
+  messageLabel: string,
+  messageText: string
+): Array<Record<string, unknown>> {
+  return [
     {
       type: "section",
       text: { type: "mrkdwn", text: `*${messageLabel}:*\n${messageText}` },
     },
-    { type: "divider" },
   ];
+}
 
-  if (aiResult) {
-    if (aiResult.isSales) {
-      blocks.push({
+/** スレッド返信2用ブロック（AI回答案 + ボタン） */
+export function buildAiDraftBlocks(
+  aiResult: AiResult,
+  actionMeta: SlackActionMeta | null
+): Array<Record<string, unknown>> {
+  if (aiResult.isSales) {
+    return [
+      {
         type: "context",
         elements: [
           {
@@ -194,65 +218,66 @@ export function buildSlackBlocks(
             text: ":no_entry_sign: *営業のお問い合わせと判定されました* — 回答案の生成をスキップしました",
           },
         ],
-      });
-    } else if (aiResult.draft) {
-      blocks.push(
-        {
-          type: "header",
-          text: { type: "plain_text", text: "回答案（AI生成）", emoji: true },
-        },
-        {
-          type: "section",
-          block_id: "ai_draft",
-          text: { type: "mrkdwn", text: aiResult.draft },
-        },
-        {
-          type: "context",
-          elements: [
-            {
-              type: "mrkdwn",
-              text: ":robot_face: この回答案はAIが自動生成したものです。内容を確認・修正のうえご利用ください。",
-            },
-          ],
-        }
-      );
+      },
+    ];
+  }
 
-      // Bot API利用時のみインタラクティブボタンを追加
-      if (actionMeta) {
-        blocks.push({
-          type: "actions",
-          block_id: "draft_actions",
-          elements: [
-            {
-              type: "button",
-              text: { type: "plain_text", text: "送信", emoji: true },
-              style: "primary",
-              action_id: "send_draft",
-              value: JSON.stringify(actionMeta),
-              confirm: {
-                title: { type: "plain_text", text: "メール送信の確認" },
-                text: {
-                  type: "mrkdwn",
-                  text: "この回答案をそのままメールで送信しますか？",
-                },
-                confirm: { type: "plain_text", text: "送信する" },
-                deny: { type: "plain_text", text: "キャンセル" },
-              },
+  if (!aiResult.draft) return [];
+
+  const blocks: Array<Record<string, unknown>> = [
+    {
+      type: "header",
+      text: { type: "plain_text", text: "回答案（AI生成）", emoji: true },
+    },
+    {
+      type: "section",
+      block_id: "ai_draft",
+      text: { type: "mrkdwn", text: aiResult.draft },
+    },
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: ":robot_face: この回答案はAIが自動生成したものです。内容を確認・修正のうえご利用ください。",
+        },
+      ],
+    },
+  ];
+
+  if (actionMeta) {
+    blocks.push({
+      type: "actions",
+      block_id: "draft_actions",
+      elements: [
+        {
+          type: "button",
+          text: { type: "plain_text", text: "送信", emoji: true },
+          style: "primary",
+          action_id: "send_draft",
+          value: JSON.stringify(actionMeta),
+          confirm: {
+            title: { type: "plain_text", text: "メール送信の確認" },
+            text: {
+              type: "mrkdwn",
+              text: "この回答案をそのままメールで送信しますか？",
             },
-            {
-              type: "button",
-              text: {
-                type: "plain_text",
-                text: "編集する",
-                emoji: true,
-              },
-              action_id: "edit_draft",
-              value: JSON.stringify(actionMeta),
-            },
-          ],
-        });
-      }
-    }
+            confirm: { type: "plain_text", text: "送信する" },
+            deny: { type: "plain_text", text: "キャンセル" },
+          },
+        },
+        {
+          type: "button",
+          text: {
+            type: "plain_text",
+            text: "編集する",
+            emoji: true,
+          },
+          action_id: "edit_draft",
+          value: JSON.stringify(actionMeta),
+        },
+      ],
+    });
   }
 
   return blocks;
@@ -279,9 +304,11 @@ async function handleSendDraft(
       ? parseDraftContent(draftRaw, meta.subject)
       : { subject: meta.subject, body: draftRaw };
 
+  const threadTs = payload.message?.thread_ts || ts;
+
   try {
     await sendDraftEmail(env, meta.email, subject, body);
-    await updateSlackMessageSent(env, channel, ts, blocks);
+    await updateSlackMessageSent(env, channel, ts, blocks, threadTs, meta.category);
 
     // kintone: App 94に回答を記録 + App 93を「回答済」に更新
     if (isKintoneEnabled(env) && env.THREAD_MAP) {
@@ -334,6 +361,7 @@ async function handleEditDraft(
     subject: meta.subject,
     channel,
     ts,
+    thread_ts: payload.message?.thread_ts,
   });
 
   await fetch("https://slack.com/api/views.open", {
@@ -401,18 +429,34 @@ async function handleModalSave(
   if (!privateMeta.channel || !privateMeta.ts) return;
 
   try {
-    // 元メッセージのブロックを取得
-    const historyRes = await fetch(
-      `https://slack.com/api/conversations.history?channel=${privateMeta.channel}&latest=${privateMeta.ts}&inclusive=true&limit=1`,
-      {
-        headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN}` },
-      }
-    );
-    const historyData = (await historyRes.json()) as {
-      ok: boolean;
-      messages?: Array<{ blocks?: Array<Record<string, unknown>> }>;
-    };
-    const originalBlocks = historyData.messages?.[0]?.blocks || [];
+    // 元メッセージのブロックを取得（スレッド返信はconversations.repliesで取得）
+    let originalBlocks: Array<Record<string, unknown>> = [];
+    if (privateMeta.thread_ts) {
+      const repliesRes = await fetch(
+        `https://slack.com/api/conversations.replies?channel=${privateMeta.channel}&ts=${privateMeta.thread_ts}&latest=${privateMeta.ts}&inclusive=true&limit=1`,
+        {
+          headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN}` },
+        }
+      );
+      const repliesData = (await repliesRes.json()) as {
+        ok: boolean;
+        messages?: Array<{ ts?: string; blocks?: Array<Record<string, unknown>> }>;
+      };
+      const target = repliesData.messages?.find((m) => m.ts === privateMeta.ts);
+      originalBlocks = target?.blocks || [];
+    } else {
+      const historyRes = await fetch(
+        `https://slack.com/api/conversations.history?channel=${privateMeta.channel}&latest=${privateMeta.ts}&inclusive=true&limit=1`,
+        {
+          headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN}` },
+        }
+      );
+      const historyData = (await historyRes.json()) as {
+        ok: boolean;
+        messages?: Array<{ blocks?: Array<Record<string, unknown>> }>;
+      };
+      originalBlocks = historyData.messages?.[0]?.blocks || [];
+    }
 
     // 回答案テキストを再構成
     const newDraftText =
@@ -520,11 +564,24 @@ export async function handleSlackInteraction(
       await handleEditDraft(payload, env);
       return new Response("", { status: 200 });
     }
+
+    if (action?.action_id === "learning_complete") {
+      const viewId = await handleLearningComplete(payload, env);
+      if (viewId) {
+        ctx.waitUntil(populateLearningModal(viewId, payload, env));
+      }
+      return new Response("", { status: 200 });
+    }
   }
 
   if (payload.type === "view_submission") {
     if (payload.view?.callback_id === "edit_draft_modal") {
       ctx.waitUntil(handleModalSave(payload, env));
+      return new Response("", { status: 200 });
+    }
+
+    if (payload.view?.callback_id === "learning_modal") {
+      ctx.waitUntil(handleLearningModalSubmit(payload, env));
       return new Response("", { status: 200 });
     }
   }

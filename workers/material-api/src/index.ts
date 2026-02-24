@@ -1,6 +1,8 @@
 export interface Env {
   SENDGRID_API_KEY: string;
-  SLACK_WEBHOOK_URL: string;
+  SLACK_BOT_TOKEN: string;
+  SLACK_CHANNEL_ID: string;
+  SLACK_WEBHOOK_URL?: string;
   FROM_EMAIL: string;
   CORS_ORIGIN: string;
   DOWNLOAD_TOKENS: KVNamespace;
@@ -145,7 +147,7 @@ ${downloadUrl}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ご不明な点がございましたら、お気軽にお問い合わせください。
-https://sotobaco.com/sotobacoportal/contact/
+https://sotobaco.com/contact/
 
 ※ このメールは自動返信です。
 ※ このメールにご返信いただいてもお応えできかねますのでご了承ください。
@@ -165,10 +167,13 @@ https://sotobaco.com
       personalizations: [{ to: [{ email: data.email }] }],
       from: {
         email: env.FROM_EMAIL,
-        name: "ソトバコ",
+        name: "ソトバコ サポートチーム",
       },
       subject: "【ソトバコポータル】資料ダウンロードのご案内",
       content: [{ type: "text/plain", value: textBody }],
+      tracking_settings: {
+        click_tracking: { enable: false },
+      },
     }),
   });
 }
@@ -178,11 +183,11 @@ https://sotobaco.com
 async function sendSlackNotification(
   env: Env,
   data: MaterialBody
-): Promise<Response> {
+): Promise<void> {
   const blocks = [
     {
       type: "header",
-      text: { type: "plain_text", text: "資料ダウンロード申込", emoji: true },
+      text: { type: "plain_text", text: "【通知】資料請求がありました", emoji: true },
     },
     {
       type: "section",
@@ -218,11 +223,30 @@ async function sendSlackNotification(
     { type: "divider" },
   ];
 
-  return fetch(env.SLACK_WEBHOOK_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ blocks }),
-  });
+  if (env.SLACK_BOT_TOKEN && env.SLACK_CHANNEL_ID) {
+    const res = await fetch("https://slack.com/api/chat.postMessage", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        channel: env.SLACK_CHANNEL_ID,
+        blocks,
+        text: "【通知】資料請求がありました",
+      }),
+    });
+    const data = (await res.json()) as { ok: boolean; error?: string };
+    if (!data.ok) {
+      throw new Error(`Slack API error: ${data.error}`);
+    }
+  } else if (env.SLACK_WEBHOOK_URL) {
+    await fetch(env.SLACK_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ blocks }),
+    });
+  }
 }
 
 /* ── Download handler ── */
@@ -267,7 +291,7 @@ async function handleDownload(
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition":
-        'attachment; filename="sotobaco-portal-material.pdf"',
+        "attachment; filename*=UTF-8''%E3%82%BD%E3%83%88%E3%83%90%E3%82%B3%E3%83%9D%E3%83%BC%E3%82%BF%E3%83%AB%E8%B3%87%E6%96%99%E8%AB%8B%E6%B1%82.pdf",
       "Cache-Control": "no-store",
     },
   });
@@ -419,6 +443,7 @@ export default {
 
       if (slackRes.status === "rejected") {
         console.error("Slack notification error:", slackRes.reason);
+        // Slack通知失敗はユーザーへのレスポンスに影響させない
       }
 
       return new Response(JSON.stringify({ ok: true }), {

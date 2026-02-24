@@ -26,7 +26,7 @@ export default function BeforeAfter() {
           />
           <div className="mt-12 flex flex-col items-center gap-8 md:flex-row md:items-end md:gap-6">
             {/* Before */}
-            <div className="w-full text-center md:w-[38%]">
+            <div className="w-[75%] text-center md:w-[38%]">
               <span className="inline-block rounded-full bg-white px-4 py-1 text-sm font-bold text-gray-600">
                 Before
               </span>
@@ -50,18 +50,18 @@ export default function BeforeAfter() {
                 After
               </span>
               <div className="relative mt-4">
-                {/* Pulsing glow ring */}
-                <div className="absolute -inset-2 animate-[pulse-ring_3s_ease-in-out_infinite] rounded-2xl bg-brand/20" />
-                <div className="absolute -inset-1 animate-[pulse-ring_3s_ease-in-out_infinite_0.5s] rounded-xl bg-brand/10" />
-              <div className="relative overflow-hidden rounded-xl border-2 border-brand/30 bg-white shadow-xl">
-                <Image
-                  src="/images/portal/portal_overview.png"
-                  alt="ソトバコポータルで整理されたポータル。タブで部署ごとにアプリを分類"
-                  width={640}
-                  height={400}
-                  className="w-full"
-                />
-              </div>
+                {/* Pulsing glow rings */}
+                <div className="absolute -inset-4 animate-[pulse-ring_2.5s_ease-in-out_infinite] rounded-2xl bg-brand/30" />
+                <div className="absolute -inset-2 animate-[pulse-ring_2.5s_ease-in-out_infinite_0.5s] rounded-xl bg-brand/20" />
+                <div className="relative overflow-hidden rounded-xl border-2 border-brand/40 bg-white shadow-2xl ring-1 ring-brand/10">
+                  <Image
+                    src="/images/portal/portal_overview.png"
+                    alt="ソトバコポータルで整理されたポータル。タブで部署ごとにアプリを分類"
+                    width={640}
+                    height={400}
+                    className="w-full"
+                  />
+                </div>
               </div>
               <p className="mt-3 text-sm font-medium text-brand">
                 ソトバコポータルで整理したポータル

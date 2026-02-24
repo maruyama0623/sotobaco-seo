@@ -235,14 +235,18 @@ SUPPORT
    - 冒頭は「お世話になっております。」から始める
    - 「関連ページ」が提供された場合、回答の最後に「ご参考」として関連URLを案内する。操作手順は操作ガイド、詳しい解説はブログ記事、機能一覧は製品ページを適切に使い分ける`;
 
-/** title-proxy から関連ページを取得 */
+/** proxy Worker から関連ページを取得（Service Binding優先） */
 export async function fetchRelevantPages(
   env: Env,
   question: string
 ): Promise<Array<{ url: string; title: string; source: string; snippet: string }>> {
-  if (!env.TITLE_PROXY_URL) return [];
+  if (!env.PROXY_SERVICE && !env.TITLE_PROXY_URL) return [];
   try {
-    const res = await fetch(`${env.TITLE_PROXY_URL}/relevant-pages`, {
+    const proxyFetch = env.PROXY_SERVICE
+      ? env.PROXY_SERVICE.fetch.bind(env.PROXY_SERVICE)
+      : fetch;
+    const base = env.PROXY_SERVICE ? "https://proxy" : env.TITLE_PROXY_URL!;
+    const res = await proxyFetch(`${base}/relevant-pages`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question }),
@@ -321,4 +325,108 @@ export async function generateAiDraft(
       : text.replace(/^SUPPORT\s*/, "").trim();
 
   return { isSales: false, draft };
+}
+
+/** スレッドの内容からお問い合わせの要約と方針を生成 */
+export async function generateLearningSummary(
+  env: Env,
+  threadContext: string
+): Promise<{ issue: string; policy: string }> {
+  const systemPrompt = `お問い合わせ対応のSlackスレッド内容を読み、以下の2点を要約してください。
+
+1. 「困っていたこと」: お客様が何に困っていたのかを簡潔に要約（1〜3文）
+2. 「方針」: この問い合わせに対してソトバコとしてどう対応したか・今後の方針を要約（1〜3文）
+
+以下の形式で出力してください（他の文章は不要）:
+ISSUE:
+（困っていたことの要約）
+
+POLICY:
+（方針の要約）`;
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": env.ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: "user", content: threadContext }],
+    }),
+  });
+
+  if (!response.ok) throw new Error("AI summary failed");
+
+  const result = (await response.json()) as {
+    content: Array<{ type: string; text: string }>;
+  };
+  const text = result.content?.[0]?.text || "";
+
+  const issueMatch = text.match(/ISSUE:\s*\n?([\s\S]*?)(?=\nPOLICY:)/);
+  const policyMatch = text.match(/POLICY:\s*\n?([\s\S]*?)$/);
+
+  return {
+    issue: issueMatch?.[1]?.trim() || "",
+    policy: policyMatch?.[1]?.trim() || "",
+  };
+}
+
+/** 学習データを基にドキュメントをブラッシュアップ */
+export async function generateDocBrushUp(
+  env: Env,
+  currentDoc: string,
+  issue: string,
+  policy: string
+): Promise<string | null> {
+  const systemPrompt = `あなたはサービスドキュメントの編集担当です。
+お問い合わせ対応から得られた学習データを基に、既存のドキュメントをブラッシュアップしてください。
+
+## ルール
+- 既存の構造（見出し・セクション順序）を維持する
+- FAQ追加・説明補足・注意事項追加・トラブルシューティング追記など、適切な箇所に情報を追加する
+- 既存の記述と重複する情報は追加しない
+- 変更が不要な場合は「NO_CHANGE」とだけ出力する
+- 変更がある場合はドキュメント全文を出力する（差分ではなく全文）`;
+
+  const userMessage = `## 現在のドキュメント
+${currentDoc}
+
+## 学習データ
+### お客様が困っていたこと
+${issue}
+
+### ソトバコとしての方針
+${policy}`;
+
+  const response = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": env.ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 8192,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Anthropic API error: ${response.status} ${errorText}`);
+  }
+
+  const result = (await response.json()) as {
+    content: Array<{ type: string; text: string }>;
+  };
+  const text = result.content?.[0]?.text || "";
+
+  if (text.trim() === "NO_CHANGE") return null;
+  return text;
 }

@@ -1,6 +1,7 @@
-import type { Env } from "./types";
+import type { Env, LearningMeta } from "./types";
 import { corsHeaders } from "./utils";
-import { sendSlackMessage } from "./slack";
+import { buildSummaryBlocks, buildContentBlocks, sendSlackMessage } from "./slack";
+import { buildCompleteButton } from "./learning";
 
 interface FeedbackBody {
   service: string;
@@ -79,53 +80,48 @@ export async function handleFeedback(
   const typeLabel = FEEDBACK_TYPE_LABELS[body.feedbackType];
   const typeEmoji = FEEDBACK_TYPE_EMOJI[body.feedbackType] || "";
 
-  // Build Slack blocks
-  const blocks: Array<Record<string, unknown>> = [
-    {
-      type: "header",
-      text: {
-        type: "plain_text",
-        text: `${typeEmoji} ご意見・ご感想（${serviceLabel}）`,
-        emoji: true,
-      },
-    },
-    {
-      type: "section",
-      fields: [
-        { type: "mrkdwn", text: `*サービス:*\n${serviceLabel}` },
-        { type: "mrkdwn", text: `*種類:*\n${typeLabel}` },
-      ],
-    },
+  // 親メッセージ: ヘッダー + 基本情報
+  const fields: Array<{ label: string; value: string }> = [
+    { label: "サービス", value: serviceLabel },
+    { label: "種類", value: typeLabel },
   ];
-
-  // Optional contact info
-  const contactFields: Array<{ type: string; text: string }> = [];
   if (body.company?.trim()) {
-    contactFields.push({ type: "mrkdwn", text: `*会社名:*\n${body.company.trim()}` });
+    fields.push({ label: "会社名", value: body.company.trim() });
   }
   if (body.name?.trim()) {
-    contactFields.push({ type: "mrkdwn", text: `*担当者名:*\n${body.name.trim()}` });
+    fields.push({ label: "担当者名", value: body.name.trim() });
   }
   if (body.email?.trim()) {
-    contactFields.push({ type: "mrkdwn", text: `*メール:*\n${body.email.trim()}` });
-  }
-  if (contactFields.length > 0) {
-    blocks.push({ type: "section", fields: contactFields });
+    fields.push({ label: "メール", value: body.email.trim() });
   }
 
-  blocks.push(
-    {
-      type: "section",
-      text: { type: "mrkdwn", text: `*コメント:*\n${body.comment.trim()}` },
-    },
-    { type: "divider" }
+  const summaryBlocks = buildSummaryBlocks(
+    "【感謝】ソトバコの改善に協力いただきました",
+    fields
   );
 
-  // Send to Slack (fire and forget)
+  // Slack通知: 親メッセージ → スレッド返信（コメント内容）
   ctx.waitUntil(
-    sendSlackMessage(env, blocks).catch((err) =>
-      console.error("Feedback Slack error:", err)
-    )
+    (async () => {
+      try {
+        const messageTs = await sendSlackMessage(env, summaryBlocks);
+        if (messageTs) {
+          const contentBlocks = buildContentBlocks("コメント", body.comment.trim());
+          await sendSlackMessage(env, contentBlocks, messageTs);
+
+          // 「完了」ボタンをスレッドに追加
+          const meta: LearningMeta = {
+            threadTs: messageTs,
+            messageTs,
+            messageChannel: env.SLACK_CHANNEL_ID || "",
+            category: body.service,
+          };
+          await sendSlackMessage(env, [buildCompleteButton(meta)], messageTs);
+        }
+      } catch (err) {
+        console.error("Feedback Slack error:", err);
+      }
+    })()
   );
 
   return new Response(

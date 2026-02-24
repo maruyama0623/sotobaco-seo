@@ -41,16 +41,8 @@ export default function PortalHeader() {
           >
             料金
           </Link>
-          <a
-            href="https://guide.sotobaco.com/portal/index.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-medium text-gray-700 transition hover:text-brand"
-          >
-            操作ガイド
-          </a>
           <Link
-            href="/sotobacoportal/contact/?category=sotobaco-portal"
+            href="/contact/?category=sotobaco-portal"
             className="text-sm font-medium text-gray-700 transition hover:text-brand"
           >
             お問い合わせ
@@ -113,16 +105,8 @@ export default function PortalHeader() {
           >
             料金
           </Link>
-          <a
-            href="https://guide.sotobaco.com/portal/index.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block py-3 text-sm font-medium text-gray-700"
-          >
-            操作ガイド
-          </a>
           <Link
-            href="/sotobacoportal/contact/?category=sotobaco-portal"
+            href="/contact/?category=sotobaco-portal"
             className="block py-3 text-sm font-medium text-gray-700"
             onClick={() => setIsOpen(false)}
           >

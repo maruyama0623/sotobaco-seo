@@ -1,0 +1,518 @@
+import type { Env, LearningMeta } from "./types";
+import { CATEGORY_LABELS } from "./types";
+import { generateDocBrushUp, generateLearningSummary } from "./ai";
+import { sendSlackMessage } from "./slack";
+
+const SERVICE_DOC_PATHS: Record<string, string> = {
+  "sotobaco-portal": "docs/sotobaco-portal.md",
+  btone: "docs/btone.md",
+};
+
+/** 「完了」ボタンブロック生成 */
+export function buildCompleteButton(
+  meta: LearningMeta
+): Record<string, unknown> {
+  return {
+    type: "actions",
+    block_id: "learning_actions",
+    elements: [
+      {
+        type: "button",
+        text: { type: "plain_text", text: "完了", emoji: true },
+        style: "primary",
+        action_id: "learning_complete",
+        value: JSON.stringify(meta),
+      },
+    ],
+  };
+}
+
+/** モーダルのブロック定義を生成 */
+function buildModalBlocks(
+  category?: string,
+  issue?: string,
+  policy?: string
+): Array<Record<string, unknown>> {
+  const serviceOptions = Object.entries(CATEGORY_LABELS).map(
+    ([value, label]) => ({
+      text: { type: "plain_text", text: label },
+      value,
+    })
+  );
+
+  const serviceElement: Record<string, unknown> = {
+    type: "static_select",
+    action_id: "service_value",
+    placeholder: { type: "plain_text", text: "サービスを選択" },
+    options: serviceOptions,
+  };
+  if (category && CATEGORY_LABELS[category]) {
+    serviceElement.initial_option = {
+      text: { type: "plain_text", text: CATEGORY_LABELS[category] },
+      value: category,
+    };
+  }
+
+  const issueElement: Record<string, unknown> = {
+    type: "plain_text_input",
+    action_id: "issue_text",
+    multiline: true,
+  };
+  if (issue) {
+    issueElement.initial_value = issue;
+  } else {
+    issueElement.placeholder = {
+      type: "plain_text",
+      text: "AIが要約を生成中...",
+    };
+  }
+
+  const policyElement: Record<string, unknown> = {
+    type: "plain_text_input",
+    action_id: "policy_text",
+    multiline: true,
+  };
+  if (policy) {
+    policyElement.initial_value = policy;
+  } else {
+    policyElement.placeholder = {
+      type: "plain_text",
+      text: "AIが要約を生成中...",
+    };
+  }
+
+  return [
+    {
+      type: "input",
+      block_id: "service_select",
+      label: { type: "plain_text", text: "対象サービスは？" },
+      element: serviceElement,
+    },
+    {
+      type: "input",
+      block_id: "issue_input",
+      label: {
+        type: "plain_text",
+        text: "この問い合わせで困っていたことを要約すると？",
+      },
+      element: issueElement,
+    },
+    {
+      type: "input",
+      block_id: "policy_input",
+      label: {
+        type: "plain_text",
+        text: "このお問い合わせに対してソトバコとしての方針は？",
+      },
+      element: policyElement,
+    },
+  ];
+}
+
+/** 「完了」ボタンクリック → モーダル即時表示（AI要約は後から反映） */
+export async function handleLearningComplete(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: any,
+  env: Env
+): Promise<string | null> {
+  const action = payload.actions?.[0];
+  const meta: LearningMeta = JSON.parse(action?.value || "{}");
+
+  const privateMeta = JSON.stringify({
+    ...meta,
+    actionChannel: payload.channel?.id,
+    actionTs: payload.message?.ts,
+  });
+
+  // モーダルを即座に開く（AI要約はplaceholderで表示）
+  const res = await fetch("https://slack.com/api/views.open", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      trigger_id: payload.trigger_id,
+      view: {
+        type: "modal",
+        callback_id: "learning_modal",
+        title: { type: "plain_text", text: "学習データ登録" },
+        submit: { type: "plain_text", text: "登録" },
+        close: { type: "plain_text", text: "キャンセル" },
+        private_metadata: privateMeta,
+        blocks: buildModalBlocks(meta.category),
+      },
+    }),
+  });
+
+  const data = (await res.json()) as {
+    ok: boolean;
+    view?: { id: string };
+  };
+  return data.ok ? data.view?.id || null : null;
+}
+
+/** スレッドからコンテキストを取得 */
+async function fetchThreadContext(
+  env: Env,
+  channel: string,
+  threadTs: string
+): Promise<string> {
+  const res = await fetch(
+    `https://slack.com/api/conversations.replies?channel=${channel}&ts=${threadTs}`,
+    {
+      headers: { Authorization: `Bearer ${env.SLACK_BOT_TOKEN}` },
+    }
+  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data = (await res.json()) as { ok: boolean; messages?: Array<any> };
+  if (!data.ok || !data.messages) return "";
+
+  return data.messages
+    .map((m) => {
+      if (m.blocks) {
+        return m.blocks
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .filter((b: any) => b.type === "section" || b.type === "header")
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .map((b: any) => {
+            if (b.text?.text) return b.text.text;
+            if (b.fields)
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              return b.fields.map((f: any) => f.text).join("\n");
+            return "";
+          })
+          .filter(Boolean)
+          .join("\n");
+      }
+      return m.text || "";
+    })
+    .filter(Boolean)
+    .join("\n---\n");
+}
+
+/** AI要約を生成してモーダルを更新 */
+export async function populateLearningModal(
+  viewId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: any,
+  env: Env
+): Promise<void> {
+  const action = payload.actions?.[0];
+  const meta: LearningMeta = JSON.parse(action?.value || "{}");
+
+  try {
+    const context = await fetchThreadContext(
+      env,
+      meta.messageChannel,
+      meta.threadTs
+    );
+    if (!context) return;
+
+    const { issue, policy } = await generateLearningSummary(env, context);
+    if (!issue && !policy) return;
+
+    const privateMeta = JSON.stringify({
+      ...meta,
+      actionChannel: payload.channel?.id,
+      actionTs: payload.message?.ts,
+    });
+
+    await fetch("https://slack.com/api/views.update", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        view_id: viewId,
+        view: {
+          type: "modal",
+          callback_id: "learning_modal",
+          title: { type: "plain_text", text: "学習データ登録" },
+          submit: { type: "plain_text", text: "登録" },
+          close: { type: "plain_text", text: "キャンセル" },
+          private_metadata: privateMeta,
+          blocks: buildModalBlocks(meta.category, issue, policy),
+        },
+      }),
+    });
+  } catch (err) {
+    console.error("Learning modal populate error:", err);
+  }
+}
+
+/** モーダル送信 → スレッド投稿 + AI更新 + GitHubコミット */
+export async function handleLearningModalSubmit(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload: any,
+  env: Env
+): Promise<void> {
+  const view = payload.view;
+  const privateMeta = JSON.parse(view.private_metadata || "{}");
+  const service =
+    view.state?.values?.service_select?.service_value?.selected_option
+      ?.value || "";
+  const issue = view.state?.values?.issue_input?.issue_text?.value || "";
+  const policy = view.state?.values?.policy_input?.policy_text?.value || "";
+
+  const serviceLabel = CATEGORY_LABELS[service] || service;
+  const threadTs: string = privateMeta.threadTs;
+
+  // ① スレッドに学習データ投稿
+  const learningBlocks: Array<Record<string, unknown>> = [
+    {
+      type: "header",
+      text: {
+        type: "plain_text",
+        text: ":books: 学習データ",
+        emoji: true,
+      },
+    },
+    {
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: `*対象サービス:*\n${serviceLabel}`,
+        },
+      ],
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*困っていたこと:*\n${issue}`,
+      },
+    },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*方針:*\n${policy}`,
+      },
+    },
+  ];
+
+  await sendSlackMessage(env, learningBlocks, threadTs);
+
+  // 「完了」ボタンを「✅ 学習完了」に更新
+  const updateButtonMessage = async (statusText: string) => {
+    if (privateMeta.actionChannel && privateMeta.actionTs) {
+      await fetch("https://slack.com/api/chat.update", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          channel: privateMeta.actionChannel,
+          ts: privateMeta.actionTs,
+          blocks: [
+            {
+              type: "context",
+              elements: [{ type: "mrkdwn", text: statusText }],
+            },
+          ],
+          text: statusText,
+        }),
+      });
+    }
+  };
+
+  // 「その他」の場合はGitHub更新なし
+  const docPath = SERVICE_DOC_PATHS[service];
+  if (!docPath) {
+    await updateButtonMessage(":white_check_mark: *学習完了*（スレッド記録のみ）");
+    return;
+  }
+
+  // GITHUB_TOKEN未設定 → GitHub連携スキップ
+  if (!env.GITHUB_TOKEN || !env.GITHUB_REPO) {
+    await updateButtonMessage(":white_check_mark: *学習完了*（GitHub未設定のためスレッド記録のみ）");
+    return;
+  }
+
+  // ② AI で docs/*.md をブラッシュアップ
+  try {
+    const { content: currentDoc, sha } = await getFileFromGitHub(
+      env,
+      docPath
+    );
+
+    let updatedDoc: string | null;
+    try {
+      updatedDoc = await generateDocBrushUp(env, currentDoc, issue, policy);
+    } catch (err) {
+      console.error("AI brushup error:", err);
+      await sendSlackMessage(
+        env,
+        [
+          {
+            type: "context",
+            elements: [
+              {
+                type: "mrkdwn",
+                text: ":warning: AI更新に失敗しました。学習データはスレッドに記録済みです。",
+              },
+            ],
+          },
+        ],
+        threadTs
+      );
+      await updateButtonMessage(":white_check_mark: *学習完了*（AI更新失敗）");
+      return;
+    }
+
+    // AI が変更不要と判断
+    if (!updatedDoc) {
+      await sendSlackMessage(
+        env,
+        [
+          {
+            type: "context",
+            elements: [
+              {
+                type: "mrkdwn",
+                text: ":information_source: ドキュメントの更新は不要と判断されました",
+              },
+            ],
+          },
+        ],
+        threadTs
+      );
+      await updateButtonMessage(":white_check_mark: *学習完了*（更新不要）");
+      return;
+    }
+
+    // ③ GitHub API でコミット
+    try {
+      const commitMessage = `docs: ${serviceLabel}のドキュメントを更新（学習データ反映）\n\n困っていたこと: ${issue.slice(0, 100)}\n方針: ${policy.slice(0, 100)}`;
+      await commitFileToGitHub(env, docPath, updatedDoc, sha, commitMessage);
+
+      await sendSlackMessage(
+        env,
+        [
+          {
+            type: "context",
+            elements: [
+              {
+                type: "mrkdwn",
+                text: `:github: \`${docPath}\` を更新しました（develop ブランチ）`,
+              },
+            ],
+          },
+        ],
+        threadTs
+      );
+      await updateButtonMessage(":white_check_mark: *学習完了*");
+    } catch (err) {
+      console.error("GitHub commit error:", err);
+      await sendSlackMessage(
+        env,
+        [
+          {
+            type: "context",
+            elements: [
+              {
+                type: "mrkdwn",
+                text: ":warning: GitHubコミットに失敗しました。学習データはスレッドに記録済みです。",
+              },
+            ],
+          },
+        ],
+        threadTs
+      );
+      await updateButtonMessage(":white_check_mark: *学習完了*（コミット失敗）");
+    }
+  } catch (err) {
+    console.error("GitHub read error:", err);
+    await sendSlackMessage(
+      env,
+      [
+        {
+          type: "context",
+          elements: [
+            {
+              type: "mrkdwn",
+              text: ":warning: GitHubからのファイル読み取りに失敗しました。学習データはスレッドに記録済みです。",
+            },
+          ],
+        },
+      ],
+      threadTs
+    );
+    await updateButtonMessage(":white_check_mark: *学習完了*（GitHub読み取り失敗）");
+  }
+}
+
+/** GitHub Contents API でファイル読み取り */
+async function getFileFromGitHub(
+  env: Env,
+  filePath: string
+): Promise<{ content: string; sha: string }> {
+  const res = await fetch(
+    `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${filePath}?ref=develop`,
+    {
+      headers: {
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "sotobaco-support-api",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`GitHub API error: ${res.status} ${errorText}`);
+  }
+
+  const data = (await res.json()) as {
+    content: string;
+    sha: string;
+    encoding: string;
+  };
+
+  const decoded = atob(data.content.replace(/\n/g, ""));
+  const bytes = Uint8Array.from(decoded, (c) => c.charCodeAt(0));
+  const content = new TextDecoder().decode(bytes);
+
+  return { content, sha: data.sha };
+}
+
+/** GitHub Contents API でコミット */
+async function commitFileToGitHub(
+  env: Env,
+  filePath: string,
+  content: string,
+  sha: string,
+  message: string
+): Promise<void> {
+  const encoded = btoa(
+    String.fromCharCode(...new TextEncoder().encode(content))
+  );
+
+  const res = await fetch(
+    `https://api.github.com/repos/${env.GITHUB_REPO}/contents/${filePath}`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+        Accept: "application/vnd.github.v3+json",
+        "User-Agent": "sotobaco-support-api",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message,
+        content: encoded,
+        sha,
+        branch: "develop",
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(`GitHub commit error: ${res.status} ${errorText}`);
+  }
+}

@@ -13,8 +13,8 @@ const config: Config = {
     extend: {
       keyframes: {
         "pulse-ring": {
-          "0%, 100%": { opacity: "0.4", transform: "scale(1)" },
-          "50%": { opacity: "0.8", transform: "scale(1.02)" },
+          "0%, 100%": { opacity: "0.3", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.04)" },
         },
       },
     },

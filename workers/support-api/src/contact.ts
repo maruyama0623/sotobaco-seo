@@ -11,7 +11,7 @@ import {
   generateInquiryTitle,
   createKintoneRecord,
 } from "./kintone";
-import { buildSlackBlocks, sendSlackMessage } from "./slack";
+import { buildSummaryBlocks, buildContentBlocks, buildAiDraftBlocks, sendSlackMessage } from "./slack";
 
 export async function handleContact(
   request: Request,
@@ -68,7 +68,7 @@ export async function handleContact(
       CATEGORY_LABELS[sanitizedData.category || "other"] || "その他";
     const userMessage = `お問い合わせ種別: ${categoryLabel}\n会社名: ${sanitizedData.company}\nお名前: ${sanitizedData.name}\n\nお問い合わせ内容:\n${sanitizedData.message}`;
 
-    const [emailRes, aiRes] = await Promise.allSettled([
+    const [emailRes, aiRes, titleRes] = await Promise.allSettled([
       sendAutoReplyEmail(env, sanitizedData),
       env.ANTHROPIC_API_KEY
         ? (async () => {
@@ -85,6 +85,13 @@ export async function handleContact(
             );
           })()
         : Promise.resolve(null),
+      env.ANTHROPIC_API_KEY
+        ? generateInquiryTitle(env, sanitizedData.message)
+        : Promise.resolve(
+            sanitizedData.message.length > 40
+              ? sanitizedData.message.slice(0, 40) + "…"
+              : sanitizedData.message
+          ),
     ]);
 
     if (emailRes.status === "rejected") {
@@ -117,34 +124,60 @@ export async function handleContact(
       console.error("AI draft generation error:", aiRes.reason);
     }
 
-    const actionMeta: SlackActionMeta | null = env.SLACK_BOT_TOKEN
-      ? {
-          type: "contact",
-          email: sanitizedData.email,
-          name: sanitizedData.name,
-          subject:
-            "【ソトバコポータル】お問い合わせいただきました件について",
-        }
-      : null;
+    const titleText =
+      titleRes.status === "fulfilled" ? titleRes.value : "新しいお問い合わせ";
+    const headerText =
+      sanitizedData.category !== "other"
+        ? "【至急確認】サービスに対するお問い合せ"
+        : "【要確認】コーポレートサイトからのお問い合わせ";
 
-    const blocks = buildSlackBlocks(
-      "新しいお問い合わせ",
-      [
-        { label: "種別", value: categoryLabel },
-        { label: "会社名", value: sanitizedData.company },
-        { label: "お名前", value: sanitizedData.name },
-        { label: "メールアドレス", value: sanitizedData.email },
+    // Slack通知: 親メッセージ → スレッド返信（内容）→ スレッド返信（AI回答案）
+    const summaryBlocks = buildSummaryBlocks(headerText, [
+      { label: "種別", value: categoryLabel },
+      { label: "会社名", value: sanitizedData.company },
+      { label: "お名前", value: sanitizedData.name },
+      { label: "メールアドレス", value: sanitizedData.email },
+    ]);
+
+    // AI生成タイトルをメールアドレスの下に挿入（営業判定時はプレフィックス付与）
+    const displayTitle = aiResult?.isSales ? `【営業連絡】${titleText}` : titleText;
+    summaryBlocks.splice(-1, 0, {
+      type: "context",
+      elements: [
+        { type: "mrkdwn", text: `:memo: ${displayTitle}` },
       ],
-      "お問い合わせ内容",
-      sanitizedData.message,
-      aiResult,
-      actionMeta
-    );
+    });
 
-    const messageTs = await sendSlackMessage(env, blocks).catch((err) => {
+    const messageTs = await sendSlackMessage(env, summaryBlocks).catch((err) => {
       console.error("Slack notification error:", err);
       return null;
     });
+
+    if (messageTs) {
+      const contentBlocks = buildContentBlocks("お問い合わせ内容", sanitizedData.message);
+      await sendSlackMessage(env, contentBlocks, messageTs).catch((err) => {
+        console.error("Slack thread (content) error:", err);
+      });
+
+      if (aiResult) {
+        const actionMeta: SlackActionMeta | null = env.SLACK_BOT_TOKEN
+          ? {
+              type: "contact",
+              email: sanitizedData.email,
+              name: sanitizedData.name,
+              subject:
+                "【ソトバコポータル】お問い合わせいただきました件について",
+              category: sanitizedData.category,
+            }
+          : null;
+        const aiBlocks = buildAiDraftBlocks(aiResult, actionMeta);
+        if (aiBlocks.length > 0) {
+          await sendSlackMessage(env, aiBlocks, messageTs).catch((err) => {
+            console.error("Slack thread (AI draft) error:", err);
+          });
+        }
+      }
+    }
 
     // kintoneレコード作成 + スレッド管理（非ブロッキング）
     if (messageTs && env.THREAD_MAP) {
@@ -156,16 +189,7 @@ export async function handleContact(
       if (isKintoneEnabled(env)) {
         ctx.waitUntil(
           (async () => {
-            const [questionId, titleText] = await Promise.all([
-              generateQuestionId(env),
-              env.ANTHROPIC_API_KEY
-                ? generateInquiryTitle(env, sanitizedData.message)
-                : Promise.resolve(
-                    sanitizedData.message.length > 40
-                      ? sanitizedData.message.slice(0, 40) + "…"
-                      : sanitizedData.message
-                  ),
-            ]);
+            const questionId = await generateQuestionId(env);
             const today = toKintoneDate();
 
             // App 93: 親レコード作成

@@ -28,7 +28,7 @@ const footerMenus: FooterMenu[] = [
       },
       {
         label: "操作ガイド",
-        href: "https://guide.sotobaco.com/portal/index.html",
+        href: "https://guide.sotobaco.com/",
         external: true,
       },
     ],

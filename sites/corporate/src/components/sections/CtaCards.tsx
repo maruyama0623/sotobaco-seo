@@ -41,7 +41,7 @@ const cards: CtaCard[] = [
     description:
       "導入に関する不明点やお悩みに、専門スタッフが迅速にお答えします。",
     cta: "問い合わせする",
-    href: "/sotobacoportal/contact/?category=sotobaco-portal",
+    href: "/contact/?category=sotobaco-portal",
     variant: "filled",
   },
   {

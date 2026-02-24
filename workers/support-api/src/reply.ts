@@ -2,7 +2,7 @@ import type { Env, ReplyBody, SlackActionMeta, ThreadMapValue } from "./types";
 import { stripQuotedContent, extractEmail, extractName } from "./email";
 import { AI_SYSTEM_PROMPT_REPLY, generateAiDraft, fetchRelevantPages } from "./ai";
 import { fetchSimilarAnswers, isKintoneEnabled, toKintoneDate, createKintoneRecord } from "./kintone";
-import { buildSlackBlocks, sendSlackMessage } from "./slack";
+import { buildSummaryBlocks, buildContentBlocks, buildAiDraftBlocks, sendSlackMessage } from "./slack";
 
 export async function handleReply(request: Request, env: Env): Promise<Response> {
   const jsonHeaders = { "Content-Type": "application/json" };
@@ -59,30 +59,6 @@ export async function handleReply(request: Request, env: Env): Promise<Response>
     const recipientEmail = extractEmail(body.from);
     const recipientName = extractName(body.from);
 
-    const actionMeta: SlackActionMeta | null = env.SLACK_BOT_TOKEN
-      ? {
-          type: "reply",
-          email: recipientEmail,
-          name: recipientName,
-          subject: body.subject
-            ? `Re: ${body.subject}`
-            : "Re: お問い合わせについて",
-        }
-      : null;
-
-    const blocks = buildSlackBlocks(
-      "メール返信",
-      [
-        { label: "差出人", value: body.from },
-        { label: "件名", value: body.subject || "(件名なし)" },
-        { label: "受信日時", value: body.date || "-" },
-      ],
-      "メール本文",
-      strippedBody,
-      aiResult,
-      actionMeta
-    );
-
     // スレッド管理: 同じメールアドレスの既存スレッドを検索
     let threadTs: string | undefined;
     let existingThread: ThreadMapValue | undefined;
@@ -96,12 +72,48 @@ export async function handleReply(request: Request, env: Env): Promise<Response>
       }
     }
 
-    const messageTs = await sendSlackMessage(env, blocks, threadTs).catch(
+    // Slack通知: 親メッセージ → スレッド返信（内容）→ スレッド返信（AI回答案）
+    const summaryBlocks = buildSummaryBlocks("メール返信", [
+      { label: "差出人", value: body.from },
+      { label: "件名", value: body.subject || "(件名なし)" },
+      { label: "受信日時", value: body.date || "-" },
+    ]);
+
+    const messageTs = await sendSlackMessage(env, summaryBlocks, threadTs).catch(
       (err) => {
         console.error("Slack notification error:", err);
         return null;
       }
     );
+
+    // parentTsはスレッドの起点（既存スレッドがあればその親、なければ今送った親メッセージ）
+    const parentTs = threadTs || messageTs;
+
+    if (parentTs) {
+      const contentBlocks = buildContentBlocks("メール本文", strippedBody);
+      await sendSlackMessage(env, contentBlocks, parentTs).catch((err) => {
+        console.error("Slack thread (content) error:", err);
+      });
+
+      if (aiResult) {
+        const actionMeta: SlackActionMeta | null = env.SLACK_BOT_TOKEN
+          ? {
+              type: "reply",
+              email: recipientEmail,
+              name: recipientName,
+              subject: body.subject
+                ? `Re: ${body.subject}`
+                : "Re: お問い合わせについて",
+            }
+          : null;
+        const aiBlocks = buildAiDraftBlocks(aiResult, actionMeta);
+        if (aiBlocks.length > 0) {
+          await sendSlackMessage(env, aiBlocks, parentTs).catch((err) => {
+            console.error("Slack thread (AI draft) error:", err);
+          });
+        }
+      }
+    }
 
     // kintone: App 94に新しい枝番で問い合わせ内容を追加 + App 93を「未回答」に戻す
     if (existingThread?.questionId && isKintoneEnabled(env)) {

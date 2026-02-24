@@ -16,6 +16,10 @@ export interface Env {
   KINTONE_API_TOKEN_93?: string;
   KINTONE_API_TOKEN_94?: string;
   TITLE_PROXY_URL?: string;
+  PROXY_TOKEN?: string;
+  PROXY_SERVICE?: Fetcher;
+  GITHUB_TOKEN?: string;
+  GITHUB_REPO?: string;
 }
 
 export const CATEGORY_LABELS: Record<string, string> = {
@@ -51,6 +55,14 @@ export interface SlackActionMeta {
   email: string;
   name: string;
   subject: string;
+  category?: string;
+}
+
+export interface LearningMeta {
+  threadTs: string;
+  messageTs: string;
+  messageChannel: string;
+  category?: string;
 }
 
 export interface ThreadMapValue {

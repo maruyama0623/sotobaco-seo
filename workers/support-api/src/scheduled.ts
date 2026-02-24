@@ -80,22 +80,49 @@ const LP_PAGE_LABELS: Record<string, string> = {
   "/sotobacoportal/contact/": "問い合わせ",
 };
 
-function formatGA4Blocks(ga4: GA4WeeklyData): Array<Record<string, unknown>> {
-  const blocks: Array<Record<string, unknown>> = [];
 
-  // アクセス概要
-  blocks.push({
-    type: "section",
-    text: {
-      type: "mrkdwn",
-      text: [
-        "*:bar_chart: アクセス概要（直近7日）*",
-        `ブログ: ${formatNumber(ga4.overview.blog.views)} PV / ${formatNumber(ga4.overview.blog.sessions)} セッション / ${formatNumber(ga4.overview.blog.users)} ユーザー`,
-        `LP: ${formatNumber(ga4.overview.site.views)} PV / ${formatNumber(ga4.overview.site.sessions)} セッション / ${formatNumber(ga4.overview.site.users)} ユーザー`,
-      ].join("\n"),
+/** 親メッセージ: サマリー（ヘッダー + 日付 + アクセス概要） */
+function formatSummaryBlocks(
+  inquiryCount: number,
+  ga4?: GA4WeeklyData | null
+): Array<Record<string, unknown>> {
+  const blocks: Array<Record<string, unknown>> = [
+    {
+      type: "header",
+      text: { type: "plain_text", text: "【通知】週次レポートを作成しました", emoji: true },
     },
-  });
-  blocks.push({ type: "divider" });
+    {
+      type: "context",
+      elements: [
+        {
+          type: "mrkdwn",
+          text: `:calendar: ${new Date().toLocaleDateString("ja-JP")} | 分析対象: 直近 ${inquiryCount} 件のお問い合わせ`,
+        },
+      ],
+    },
+  ];
+
+  if (ga4) {
+    blocks.push({ type: "divider" });
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: [
+          "*:bar_chart: アクセス概要（直近7日）*",
+          `ブログ: ${formatNumber(ga4.overview.blog.views)} PV / ${formatNumber(ga4.overview.blog.sessions)} セッション / ${formatNumber(ga4.overview.blog.users)} ユーザー`,
+          `LP: ${formatNumber(ga4.overview.site.views)} PV / ${formatNumber(ga4.overview.site.sessions)} セッション / ${formatNumber(ga4.overview.site.users)} ユーザー`,
+        ].join("\n"),
+      },
+    });
+  }
+
+  return blocks;
+}
+
+/** スレッド返信: GA4 詳細（人気記事 + LPアクセス内訳） */
+function formatGA4DetailBlocks(ga4: GA4WeeklyData): Array<Record<string, unknown>> {
+  const blocks: Array<Record<string, unknown>> = [];
 
   // ブログ人気記事 Top5
   if (ga4.blogRanking.length > 0) {
@@ -138,37 +165,15 @@ function formatGA4Blocks(ga4: GA4WeeklyData): Array<Record<string, unknown>> {
       ].join("\n"),
     },
   });
-  blocks.push({ type: "divider" });
 
   return blocks;
 }
 
+/** スレッド返信: AI分析（記事案 + ガイド改善 + 回答パターン） */
 function formatInsightsBlocks(
-  insights: LearningInsightsResult,
-  inquiryCount: number,
-  ga4?: GA4WeeklyData | null
+  insights: LearningInsightsResult
 ): Array<Record<string, unknown>> {
-  const blocks: Array<Record<string, unknown>> = [
-    {
-      type: "header",
-      text: { type: "plain_text", text: "週次学習分析レポート", emoji: true },
-    },
-    {
-      type: "context",
-      elements: [
-        {
-          type: "mrkdwn",
-          text: `:calendar: ${new Date().toLocaleDateString("ja-JP")} | 分析対象: 直近 ${inquiryCount} 件のお問い合わせ`,
-        },
-      ],
-    },
-    { type: "divider" },
-  ];
-
-  // GA4 アクセスデータ（取得できた場合のみ）
-  if (ga4) {
-    blocks.push(...formatGA4Blocks(ga4));
-  }
+  const blocks: Array<Record<string, unknown>> = [];
 
   // ブログ記事案
   if (insights.blogTopics.length > 0) {
@@ -263,11 +268,22 @@ export async function handleScheduled(env: Env): Promise<void> {
   };
 
   try {
-    // learning-insights と GA4 データを並列取得
+    // learning-insights と GA4 データを並列取得（Service Binding優先）
+    const proxyFetch = env.PROXY_SERVICE
+      ? env.PROXY_SERVICE.fetch.bind(env.PROXY_SERVICE)
+      : fetch;
+    const proxyBase = env.PROXY_SERVICE
+      ? "https://proxy"
+      : env.TITLE_PROXY_URL!;
+    const proxyHeaders: Record<string, string> = {
+      "Content-Type": "application/json",
+      ...(env.PROXY_TOKEN ? { "x-proxy-token": env.PROXY_TOKEN } : {}),
+    };
+
     const [insightsRes, ga4Res] = await Promise.all([
-      fetch(`${env.TITLE_PROXY_URL}/learning-insights`, {
+      proxyFetch(`${proxyBase}/learning-insights`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: proxyHeaders,
         body: JSON.stringify({
           service: "ソトバコポータル",
           inquiries: inquiries.slice(0, 30).map((i) => ({
@@ -278,7 +294,9 @@ export async function handleScheduled(env: Env): Promise<void> {
           keywords,
         }),
       }),
-      fetch(`${env.TITLE_PROXY_URL}/ga4-weekly`).catch((err) => {
+      proxyFetch(`${proxyBase}/ga4-weekly`, {
+        headers: proxyHeaders,
+      }).catch((err) => {
         console.log("Scheduled: GA4 fetch failed (non-blocking):", err);
         return null;
       }),
@@ -301,9 +319,9 @@ export async function handleScheduled(env: Env): Promise<void> {
       }
     }
 
-    const blocks = formatInsightsBlocks(insights, inquiries.length, ga4Data);
-
-    await fetch("https://slack.com/api/chat.postMessage", {
+    // 親メッセージ: サマリー
+    const summaryBlocks = formatSummaryBlocks(inquiries.length, ga4Data);
+    const parentRes = await fetch("https://slack.com/api/chat.postMessage", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
@@ -311,10 +329,52 @@ export async function handleScheduled(env: Env): Promise<void> {
       },
       body: JSON.stringify({
         channel: env.SLACK_CHANNEL_ID,
-        blocks,
-        text: "週次学習分析レポート",
+        blocks: summaryBlocks,
+        text: "【通知】週次レポートを作成しました",
       }),
     });
+    const parentData = (await parentRes.json()) as { ok: boolean; ts?: string };
+    const parentTs = parentData.ts;
+
+    if (parentTs) {
+      // スレッド返信1: GA4 詳細（データがある場合）
+      if (ga4Data) {
+        const ga4Blocks = formatGA4DetailBlocks(ga4Data);
+        if (ga4Blocks.length > 0) {
+          await fetch("https://slack.com/api/chat.postMessage", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              channel: env.SLACK_CHANNEL_ID,
+              thread_ts: parentTs,
+              blocks: ga4Blocks,
+              text: "GA4 アクセス詳細",
+            }),
+          });
+        }
+      }
+
+      // スレッド返信2: AI分析（記事案・ガイド改善・回答パターン）
+      const insightsBlocks = formatInsightsBlocks(insights);
+      if (insightsBlocks.length > 0) {
+        await fetch("https://slack.com/api/chat.postMessage", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${env.SLACK_BOT_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            channel: env.SLACK_CHANNEL_ID,
+            thread_ts: parentTs,
+            blocks: insightsBlocks,
+            text: "AI分析レポート",
+          }),
+        });
+      }
+    }
 
     console.log(`Scheduled: weekly report posted to Slack (GA4: ${ga4Data ? "included" : "skipped"})`);
   } catch (err) {

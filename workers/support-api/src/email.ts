@@ -48,7 +48,7 @@ https://sotobaco.com
       personalizations: [{ to: [{ email: data.email }] }],
       from: {
         email: env.FROM_EMAIL,
-        name: "ソトバコ",
+        name: "ソトバコ サポートチーム",
       },
       reply_to: {
         email: replyTo,
@@ -56,6 +56,9 @@ https://sotobaco.com
       },
       subject: "【ソトバコ】お問い合わせありがとうございます",
       content: [{ type: "text/plain", value: textBody }],
+      tracking_settings: {
+        click_tracking: { enable: false },
+      },
     }),
   });
 }
@@ -81,6 +84,9 @@ export async function sendDraftEmail(
       reply_to: { email: replyTo, name: "ソトバコ サポート" },
       subject,
       content: [{ type: "text/plain", value: body }],
+      tracking_settings: {
+        click_tracking: { enable: false },
+      },
     }),
   });
 
