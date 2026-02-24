@@ -26,7 +26,7 @@ export default function HomePage() {
         {articles.length === 0 ? (
           <p className="text-center text-gray-500">記事を準備中です。</p>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {articles.map((article) => (
               <ArticleCard key={article.slug} article={article} />
             ))}

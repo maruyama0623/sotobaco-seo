@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-02-14T08:03:49.046Z",
+  "baseUrl": "https://sotobaco.cybozu.com",
+  "apps": [
+    {
+      "id": 70,
+      "name": "製品管理",
+      "status": "ok",
+      "revision": "27",
+      "file": "app-70.json",
+      "fieldCount": 14
+    }
+  ]
+}

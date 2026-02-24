@@ -1,0 +1,366 @@
+{
+  "generatedAt": "2026-02-14T08:03:20.128Z",
+  "mode": "execute",
+  "source": {
+    "appId": 72,
+    "csvPath": "/Users/maruyama/Downloads/問い合わせ明細_20260214T162658+0900.csv",
+    "csvRows": 39,
+    "groups": 27
+  },
+  "target": {
+    "parentAppId": 93,
+    "detailAppId": 94
+  },
+  "summary": {
+    "parentPlanned": 20,
+    "detailPlanned": 29,
+    "skippedGroups": 7,
+    "warnings": 0
+  },
+  "skipped": [
+    {
+      "groupKey": "row:33",
+      "lineNumbers": [
+        34
+      ],
+      "reason": "client_not_found",
+      "candidates": [
+        "株式会社 _翔"
+      ],
+      "ambiguous": []
+    },
+    {
+      "groupKey": "old:_翔-0003",
+      "lineNumbers": [
+        27,
+        28,
+        26
+      ],
+      "reason": "client_not_found",
+      "candidates": [
+        "株式会社 _翔"
+      ],
+      "ambiguous": []
+    },
+    {
+      "groupKey": "old:千年-0001",
+      "lineNumbers": [
+        29,
+        24
+      ],
+      "reason": "client_not_found",
+      "candidates": [
+        "八海醸造グループ (株)千年"
+      ],
+      "ambiguous": []
+    },
+    {
+      "groupKey": "row:24",
+      "lineNumbers": [
+        25
+      ],
+      "reason": "client_not_found",
+      "candidates": [
+        "株式会社 _翔"
+      ],
+      "ambiguous": []
+    },
+    {
+      "groupKey": "row:8",
+      "lineNumbers": [
+        9
+      ],
+      "reason": "client_not_found",
+      "candidates": [
+        "丸紅情報システムズ"
+      ],
+      "ambiguous": []
+    },
+    {
+      "groupKey": "row:16",
+      "lineNumbers": [
+        17
+      ],
+      "reason": "client_not_found",
+      "candidates": [
+        "株式会社セプテムコミュニケーションズ"
+      ],
+      "ambiguous": []
+    },
+    {
+      "groupKey": "row:17",
+      "lineNumbers": [
+        18
+      ],
+      "reason": "client_not_found",
+      "candidates": [
+        "株式会社ゾウ"
+      ],
+      "ambiguous": []
+    }
+  ],
+  "warnings": [],
+  "createdPreview": [
+    {
+      "groupKey": "row:36",
+      "lineNumbers": [
+        37
+      ],
+      "questionId": "20250925-001",
+      "clientSearch": "【C00019】土谷ゴム化成株式会社",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 37
+    },
+    {
+      "groupKey": "old:JBarrel-0002",
+      "lineNumbers": [
+        40,
+        39
+      ],
+      "questionId": "20251106-002",
+      "clientSearch": "【C00005】株式会社J-Barrel",
+      "detailCount": 2,
+      "oldInquiryIds": [
+        "JBarrel-0002"
+      ],
+      "sourceAppId": 72,
+      "sourceLine": 40
+    },
+    {
+      "groupKey": "row:37",
+      "lineNumbers": [
+        38
+      ],
+      "questionId": "20251110-001",
+      "clientSearch": "【C00005】株式会社J-Barrel",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 38
+    },
+    {
+      "groupKey": "row:35",
+      "lineNumbers": [
+        36
+      ],
+      "questionId": "20251111-001",
+      "clientSearch": "【C00005】株式会社J-Barrel",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 36
+    },
+    {
+      "groupKey": "row:34",
+      "lineNumbers": [
+        35
+      ],
+      "questionId": "20251121-001",
+      "clientSearch": "【C00062】関電ファシリティーズ株式会社",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 35
+    },
+    {
+      "groupKey": "old:JBarrel-0003",
+      "lineNumbers": [
+        31,
+        30
+      ],
+      "questionId": "20251128-001",
+      "clientSearch": "【C00005】株式会社J-Barrel",
+      "detailCount": 2,
+      "oldInquiryIds": [
+        "JBarrel-0003"
+      ],
+      "sourceAppId": 72,
+      "sourceLine": 31
+    },
+    {
+      "groupKey": "row:32",
+      "lineNumbers": [
+        33
+      ],
+      "questionId": "20251128-002",
+      "clientSearch": "【C00060】株式会社紅中",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 33
+    },
+    {
+      "groupKey": "row:31",
+      "lineNumbers": [
+        32
+      ],
+      "questionId": "20251204-001",
+      "clientSearch": "【C00054】社会保険労務士法人ミナジン",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 32
+    },
+    {
+      "groupKey": "row:22",
+      "lineNumbers": [
+        23
+      ],
+      "questionId": "20251211-001",
+      "clientSearch": "【C00060】株式会社紅中",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 23
+    },
+    {
+      "groupKey": "row:21",
+      "lineNumbers": [
+        22
+      ],
+      "questionId": "20251214-001",
+      "clientSearch": "【C00019】土谷ゴム化成株式会社",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 22
+    },
+    {
+      "groupKey": "row:20",
+      "lineNumbers": [
+        21
+      ],
+      "questionId": "20251229-001",
+      "clientSearch": "【C00002】株式会社大志企画",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 21
+    },
+    {
+      "groupKey": "old:大志-0001",
+      "lineNumbers": [
+        19,
+        20
+      ],
+      "questionId": "20260109-001",
+      "clientSearch": "【C00002】株式会社大志企画",
+      "detailCount": 2,
+      "oldInquiryIds": [
+        "大志-0001"
+      ],
+      "sourceAppId": 72,
+      "sourceLine": 19
+    },
+    {
+      "groupKey": "row:3",
+      "lineNumbers": [
+        4
+      ],
+      "questionId": "20260114-001",
+      "clientSearch": "【C00060】株式会社紅中",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 4
+    },
+    {
+      "groupKey": "old:みんな-0001",
+      "lineNumbers": [
+        7,
+        8,
+        6
+      ],
+      "questionId": "20260114-002",
+      "clientSearch": "【C00061】特定非営利活動法人みんなの家",
+      "detailCount": 3,
+      "oldInquiryIds": [
+        "みんな-0001"
+      ],
+      "sourceAppId": 72,
+      "sourceLine": 7
+    },
+    {
+      "groupKey": "row:2",
+      "lineNumbers": [
+        3
+      ],
+      "questionId": "20260115-001",
+      "clientSearch": "【C00060】株式会社紅中",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 3
+    },
+    {
+      "groupKey": "old:東海-0001",
+      "lineNumbers": [
+        10,
+        11
+      ],
+      "questionId": "20260122-001",
+      "clientSearch": "【C00064】株式会社東海大阪レンタル",
+      "detailCount": 2,
+      "oldInquiryIds": [
+        "東海-0001"
+      ],
+      "sourceAppId": 72,
+      "sourceLine": 10
+    },
+    {
+      "groupKey": "old:JBarrel-0004",
+      "lineNumbers": [
+        14,
+        15,
+        16,
+        13
+      ],
+      "questionId": "20260126-001",
+      "clientSearch": "【C00005】株式会社J-Barrel",
+      "detailCount": 4,
+      "oldInquiryIds": [
+        "JBarrel-0004"
+      ],
+      "sourceAppId": 72,
+      "sourceLine": 14
+    },
+    {
+      "groupKey": "row:11",
+      "lineNumbers": [
+        12
+      ],
+      "questionId": "20260128-001",
+      "clientSearch": "【C00005】株式会社J-Barrel",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 12
+    },
+    {
+      "groupKey": "row:4",
+      "lineNumbers": [
+        5
+      ],
+      "questionId": "20260210-001",
+      "clientSearch": "【C00068】ココカラ合同会社",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 5
+    },
+    {
+      "groupKey": "row:1",
+      "lineNumbers": [
+        2
+      ],
+      "questionId": "20260212-001",
+      "clientSearch": "【C00069】岩下兄弟株式会社",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 2
+    }
+  ]
+}

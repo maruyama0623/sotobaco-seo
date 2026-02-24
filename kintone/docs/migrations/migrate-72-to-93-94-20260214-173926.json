@@ -1,0 +1,127 @@
+{
+  "generatedAt": "2026-02-14T08:39:26.473Z",
+  "mode": "dry-run",
+  "source": {
+    "appId": 72,
+    "csvPath": "/Users/maruyama/Downloads/問い合わせ明細_20260214T162658+0900.csv",
+    "csvRows": 10,
+    "onlyLines": [
+      9,
+      17,
+      18,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      34
+    ],
+    "groups": 7
+  },
+  "target": {
+    "parentAppId": 93,
+    "detailAppId": 94
+  },
+  "summary": {
+    "parentPlanned": 7,
+    "detailPlanned": 10,
+    "skippedGroups": 0,
+    "warnings": 0
+  },
+  "skipped": [],
+  "warnings": [],
+  "createdPreview": [
+    {
+      "groupKey": "row:10",
+      "lineNumbers": [
+        34
+      ],
+      "questionId": "20251122-001",
+      "clientSearch": "【C00070】株式会社 _翔",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 34
+    },
+    {
+      "groupKey": "old:_翔-0003",
+      "lineNumbers": [
+        27,
+        28,
+        26
+      ],
+      "questionId": "20251209-001",
+      "clientSearch": "【C00070】株式会社 _翔",
+      "detailCount": 3,
+      "oldInquiryIds": [
+        "_翔-0003"
+      ],
+      "sourceAppId": 72,
+      "sourceLine": 27
+    },
+    {
+      "groupKey": "old:千年-0001",
+      "lineNumbers": [
+        29,
+        24
+      ],
+      "questionId": "20251210-001",
+      "clientSearch": "【C00071】八海醸造グループ (株)千年",
+      "detailCount": 2,
+      "oldInquiryIds": [
+        "千年-0001"
+      ],
+      "sourceAppId": 72,
+      "sourceLine": 29
+    },
+    {
+      "groupKey": "row:5",
+      "lineNumbers": [
+        25
+      ],
+      "questionId": "20251211-002",
+      "clientSearch": "【C00070】株式会社 _翔",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 25
+    },
+    {
+      "groupKey": "row:1",
+      "lineNumbers": [
+        9
+      ],
+      "questionId": "20260119-001",
+      "clientSearch": "【C00072】丸紅情報システムズ",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 9
+    },
+    {
+      "groupKey": "row:2",
+      "lineNumbers": [
+        17
+      ],
+      "questionId": "20260202-001",
+      "clientSearch": "【C00073】株式会社セプテムコミュニケーションズ",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 17
+    },
+    {
+      "groupKey": "row:3",
+      "lineNumbers": [
+        18
+      ],
+      "questionId": "20260206-001",
+      "clientSearch": "【C00074】株式会社ゾウ",
+      "detailCount": 1,
+      "oldInquiryIds": [],
+      "sourceAppId": 72,
+      "sourceLine": 18
+    }
+  ]
+}

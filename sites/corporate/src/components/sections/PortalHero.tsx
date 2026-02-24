@@ -38,7 +38,7 @@ export default function PortalHero() {
             フリープランは期間制限なし。
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
-            <CtaButton href={SERVICE_URL} external>フリープランを始める（無料）</CtaButton>
+            <CtaButton href={SERVICE_URL} external>フリープランを始める</CtaButton>
             <CtaButton href="/sotobacoportal/material/" variant="outline" external={false}>
               資料ダウンロード
             </CtaButton>

@@ -96,6 +96,8 @@ jobs:
       - name: Build
         working-directory: sites/corporate
         run: npm run build
+        env:
+          NEXT_PUBLIC_BLOG_URL: https://stg.blog.sotobaco.com/
 
       - name: Add robots.txt to block indexing
         run: |

@@ -9,7 +9,12 @@ const footerMenus: FooterMenu[] = [
       {
         label: "ソトバコポータル",
         href: EXTERNAL_URLS.portal,
-        external: false,
+        external: true,
+      },
+      {
+        label: "Btone",
+        href: "https://sotobaco.com/btone",
+        external: true,
       },
     ],
   },
@@ -17,6 +22,11 @@ const footerMenus: FooterMenu[] = [
     title: "サポート",
     links: [
       { label: "お問い合わせ", href: EXTERNAL_URLS.contact, external: true },
+      {
+        label: "操作ガイド",
+        href: "https://guide.sotobaco.com/portal/index.html",
+        external: true,
+      },
     ],
   },
   {
@@ -27,12 +37,16 @@ const footerMenus: FooterMenu[] = [
         href: EXTERNAL_URLS.update,
         external: true,
       },
+      {
+        label: "ブログ",
+        href: "/",
+        external: false,
+      },
     ],
   },
   {
     title: "会社情報",
     links: [
-      { label: "運営会社", href: EXTERNAL_URLS.company, external: true },
       { label: "会社概要", href: EXTERNAL_URLS.companyAbout, external: true },
       { label: "利用規約", href: EXTERNAL_URLS.terms, external: true },
       {

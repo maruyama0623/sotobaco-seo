@@ -64,6 +64,8 @@ export default async function ArticlePage({ params }: PageProps) {
                 description={MESSAGING.ctaDescription}
                 buttonText={MESSAGING.ctaButtonText}
                 buttonHref={EXTERNAL_URLS.portal}
+                secondaryButtonText="資料ダウンロード"
+                secondaryButtonHref={EXTERNAL_URLS.material}
               />
             </div>
           </article>

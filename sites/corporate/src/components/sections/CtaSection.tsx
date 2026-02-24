@@ -38,7 +38,7 @@ export default function CtaSection({
   variant = "filled",
   title = "まずはフリープランで体験しませんか？",
   description,
-  buttonText = "フリープランを始める（無料）",
+  buttonText = "フリープランを始める",
   links,
 }: Props) {
   return (

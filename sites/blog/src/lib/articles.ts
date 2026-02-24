@@ -44,7 +44,7 @@ export function getAllArticleSummaries(): ArticleSummary[] {
       return { ...parsed.frontmatter };
     })
     .filter((a): a is ArticleSummary => a !== null)
-    .sort((a, b) => a.articleNumber - b.articleNumber);
+    .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
 }
 
 export function getAllSlugs(): string[] {

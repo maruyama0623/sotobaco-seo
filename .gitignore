@@ -12,5 +12,8 @@ sites/lp/public/images/
 # Legacy web/ directory
 web/.next/
 
+# Environment files
+.env
+
 # OS files
 .DS_Store

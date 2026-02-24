@@ -8,6 +8,7 @@ export const EXTERNAL_URLS = {
   terms: "https://sotobaco.com/terms",
   privacy: "https://sotobaco.com/privacy",
   update: "https://sotobaco.com/update/",
+  material: "https://sotobaco.com/sotobacoportal/material/",
 } as const;
 
 export const IMAGES = {

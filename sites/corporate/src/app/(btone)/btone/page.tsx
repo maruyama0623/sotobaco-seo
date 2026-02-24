@@ -323,7 +323,7 @@ export default function BtonePage() {
         {/* データ別機能 */}
         <h3 className="mt-14 text-center text-lg font-extrabold text-gray-900">データ別の主な機能</h3>
         <div className="mt-6 overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+          <table className="w-full min-w-[600px] border-collapse text-sm">
             <thead>
               <tr className="bg-gray-50">
                 <th className="whitespace-nowrap border border-gray-200 px-4 py-3 text-left font-bold text-gray-900">連携データ</th>

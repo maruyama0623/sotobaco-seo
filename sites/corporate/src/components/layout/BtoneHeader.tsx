@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { BTONE_CONTACT_URL, BTONE_SIGNUP_URL } from "@/lib/constants";
+import { BTONE_SIGNUP_URL } from "@/lib/constants";
 
 export default function BtoneHeader() {
   return (
@@ -16,22 +16,14 @@ export default function BtoneHeader() {
           />
         </Link>
 
-        <div className="flex items-center gap-3">
-          <a
-            href={BTONE_CONTACT_URL}
-            className="rounded-lg border-2 border-brand px-5 py-2 text-sm font-bold text-brand transition hover:bg-brand-light"
-          >
-            お問い合わせ
-          </a>
-          <a
-            href={BTONE_SIGNUP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg bg-brand px-5 py-2 text-sm font-bold text-white shadow transition hover:bg-brand-dark hover:shadow-md"
-          >
-            30日間無料で試す
-          </a>
-        </div>
+        <a
+          href={BTONE_SIGNUP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-lg bg-brand px-5 py-2 text-sm font-bold text-white shadow transition hover:bg-brand-dark hover:shadow-md"
+        >
+          30日間無料で試す
+        </a>
       </div>
     </header>
   );
