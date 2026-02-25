@@ -33,8 +33,13 @@ const footerMenus: FooterMenu[] = [
     title: "お知らせ",
     links: [
       {
+        label: "お知らせ",
+        href: "https://sotobaco.com/news/?category=お知らせ",
+        external: true,
+      },
+      {
         label: "アップデート情報",
-        href: EXTERNAL_URLS.update,
+        href: "https://sotobaco.com/news/?category=アップデート情報",
         external: true,
       },
       {

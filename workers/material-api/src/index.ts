@@ -7,6 +7,7 @@ export interface Env {
   CORS_ORIGIN: string;
   DOWNLOAD_TOKENS: KVNamespace;
   MATERIAL_BUCKET: R2Bucket;
+  RATE_LIMIT: KVNamespace;
 }
 
 /* ── Select options (allowlists) ── */
@@ -121,6 +122,46 @@ function isValidEmail(email: string): boolean {
 
 function isValidOption(value: string, options: string[]): boolean {
   return options.includes(value);
+}
+
+/* ── Rate Limiting ── */
+
+const RATE_LIMIT_WINDOW = 600;
+const RATE_LIMIT_MAX = 5;
+
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+
+async function checkRateLimit(
+  kv: KVNamespace,
+  request: Request,
+  headers: Record<string, string>
+): Promise<Response | null> {
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const key = `rl:${ip}`;
+  const now = Math.floor(Date.now() / 1000);
+
+  const stored = await kv.get(key, "json") as RateLimitEntry | null;
+
+  if (stored && now < stored.resetAt) {
+    if (stored.count >= RATE_LIMIT_MAX) {
+      return new Response(
+        JSON.stringify({ error: "送信回数の上限に達しました。しばらく時間をおいてから再度お試しください。" }),
+        { status: 429, headers: { ...headers, "Content-Type": "application/json" } }
+      );
+    }
+    await kv.put(key, JSON.stringify({ count: stored.count + 1, resetAt: stored.resetAt }), {
+      expirationTtl: stored.resetAt - now,
+    });
+  } else {
+    await kv.put(key, JSON.stringify({ count: 1, resetAt: now + RATE_LIMIT_WINDOW }), {
+      expirationTtl: RATE_LIMIT_WINDOW,
+    });
+  }
+
+  return null;
 }
 
 /* ── Email ── */
@@ -346,12 +387,20 @@ export default {
       });
     }
 
+    // Rate limit check
+    const rateLimitRes = await checkRateLimit(env.RATE_LIMIT, request, headers);
+    if (rateLimitRes) return rateLimitRes;
+
     // Validation
     const errors: string[] = [];
     if (!body.company?.trim()) errors.push("会社名は必須です");
+    else if (body.company.length > 200) errors.push("会社名は200文字以内で入力してください");
     if (!body.name?.trim()) errors.push("お名前は必須です");
+    else if (body.name.length > 100) errors.push("お名前は100文字以内で入力してください");
     if (!body.email?.trim()) {
       errors.push("メールアドレスは必須です");
+    } else if (body.email.length > 254) {
+      errors.push("メールアドレスは254文字以内で入力してください");
     } else if (!isValidEmail(body.email)) {
       errors.push("メールアドレスの形式が不正です");
     }

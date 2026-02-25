@@ -492,10 +492,11 @@ export default {
       return json({ error: 'Not found' }, 404);
     } catch (err) {
       const e = err as { status?: number; message?: string; detail?: string };
+      console.error('Worker error:', e.message);
       if (e.status === 502)
-        return json({ error: e.message, detail: e.detail }, 502);
+        return json({ error: 'External service error' }, 502);
       return json(
-        { error: e.message || 'unknown error' },
+        { error: 'Internal server error' },
         500,
       );
     }

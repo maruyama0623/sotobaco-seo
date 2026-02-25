@@ -1,5 +1,5 @@
 import type { Env, LearningMeta } from "./types";
-import { corsHeaders } from "./utils";
+import { corsHeaders, checkRateLimit } from "./utils";
 import { buildSummaryBlocks, buildContentBlocks, sendSlackMessage } from "./slack";
 import { buildCompleteButton } from "./learning";
 
@@ -56,6 +56,10 @@ export async function handleFeedback(
     );
   }
 
+  // Rate limit check
+  const rateLimitRes = await checkRateLimit(env.RATE_LIMIT, request, jsonHeaders);
+  if (rateLimitRes) return rateLimitRes;
+
   // Validation
   if (!body.service || !SERVICE_LABELS[body.service]) {
     return new Response(
@@ -72,6 +76,30 @@ export async function handleFeedback(
   if (!body.comment?.trim()) {
     return new Response(
       JSON.stringify({ error: "コメントを入力してください" }),
+      { status: 400, headers: jsonHeaders }
+    );
+  }
+  if (body.comment.length > 5000) {
+    return new Response(
+      JSON.stringify({ error: "コメントは5000文字以内で入力してください" }),
+      { status: 400, headers: jsonHeaders }
+    );
+  }
+  if (body.company && body.company.length > 200) {
+    return new Response(
+      JSON.stringify({ error: "会社名は200文字以内で入力してください" }),
+      { status: 400, headers: jsonHeaders }
+    );
+  }
+  if (body.name && body.name.length > 100) {
+    return new Response(
+      JSON.stringify({ error: "お名前は100文字以内で入力してください" }),
+      { status: 400, headers: jsonHeaders }
+    );
+  }
+  if (body.email && body.email.length > 254) {
+    return new Response(
+      JSON.stringify({ error: "メールアドレスは254文字以内で入力してください" }),
       { status: 400, headers: jsonHeaders }
     );
   }

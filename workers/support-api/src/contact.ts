@@ -1,10 +1,9 @@
 import type { Env, ContactBody, AiResult, SlackActionMeta, ThreadMapValue } from "./types";
 import { CATEGORY_LABELS } from "./types";
-import { isValidEmail } from "./utils";
+import { isValidEmail, checkRateLimit, hashEmail } from "./utils";
 import { sendAutoReplyEmail } from "./email";
 import { fetchServiceContext, buildContactPrompt, generateAiDraft, fetchRelevantPages } from "./ai";
 import {
-  fetchSimilarAnswers,
   isKintoneEnabled,
   toKintoneDate,
   generateQuestionId,
@@ -37,16 +36,25 @@ export async function handleContact(
     });
   }
 
+  // Rate limit check
+  const rateLimitRes = await checkRateLimit(env.RATE_LIMIT, request, headers);
+  if (rateLimitRes) return rateLimitRes;
+
   // Validation
   const errors: string[] = [];
   if (!body.company?.trim()) errors.push("会社名は必須です");
+  else if (body.company.length > 200) errors.push("会社名は200文字以内で入力してください");
   if (!body.name?.trim()) errors.push("お名前は必須です");
+  else if (body.name.length > 100) errors.push("お名前は100文字以内で入力してください");
   if (!body.email?.trim()) {
     errors.push("メールアドレスは必須です");
+  } else if (body.email.length > 254) {
+    errors.push("メールアドレスは254文字以内で入力してください");
   } else if (!isValidEmail(body.email)) {
     errors.push("メールアドレスの形式が不正です");
   }
   if (!body.message?.trim()) errors.push("お問い合わせ内容は必須です");
+  else if (body.message.length > 5000) errors.push("お問い合わせ内容は5000文字以内で入力してください");
 
   if (errors.length > 0) {
     return new Response(JSON.stringify({ error: errors.join(", ") }), {
@@ -66,15 +74,14 @@ export async function handleContact(
   try {
     const categoryLabel =
       CATEGORY_LABELS[sanitizedData.category || "other"] || "その他";
-    const userMessage = `お問い合わせ種別: ${categoryLabel}\n会社名: ${sanitizedData.company}\nお名前: ${sanitizedData.name}\n\nお問い合わせ内容:\n${sanitizedData.message}`;
+    const userMessage = `お問い合わせ種別: ${categoryLabel}\n会社名: ${sanitizedData.company}\n\nお問い合わせ内容:\n${sanitizedData.message}`;
 
     const [emailRes, aiRes, titleRes] = await Promise.allSettled([
       sendAutoReplyEmail(env, sanitizedData),
       env.ANTHROPIC_API_KEY
         ? (async () => {
-            const [serviceContext, pastQA, relevantPages] = await Promise.all([
+            const [serviceContext, relevantPages] = await Promise.all([
               fetchServiceContext(env),
-              fetchSimilarAnswers(env, sanitizedData.message),
               fetchRelevantPages(env, sanitizedData.message),
             ]);
             if (!serviceContext) return null;
@@ -82,7 +89,6 @@ export async function handleContact(
               env,
               buildContactPrompt(serviceContext),
               userMessage,
-              pastQA,
               relevantPages
             );
           })()
@@ -187,6 +193,7 @@ export async function handleContact(
         channel: env.SLACK_CHANNEL_ID || "",
         ts: messageTs,
       };
+      const emailKey = await hashEmail(sanitizedData.email);
 
       if (isKintoneEnabled(env)) {
         ctx.waitUntil(
@@ -229,7 +236,7 @@ export async function handleContact(
             if (detailId) kvValue.detailRecordId = detailId;
 
             await env.THREAD_MAP.put(
-              sanitizedData.email.toLowerCase(),
+              emailKey,
               JSON.stringify(kvValue),
               { expirationTtl: 60 * 60 * 24 * 30 }
             );
@@ -237,7 +244,7 @@ export async function handleContact(
         );
       } else {
         await env.THREAD_MAP.put(
-          sanitizedData.email.toLowerCase(),
+          emailKey,
           JSON.stringify(kvValue),
           { expirationTtl: 60 * 60 * 24 * 30 }
         ).catch((err) => console.error("KV put error:", err));

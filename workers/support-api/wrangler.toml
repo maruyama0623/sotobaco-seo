@@ -29,6 +29,10 @@ binding = "THREAD_MAP"
 id = "ff293d93cd2843bf9a412ae1bbd72558"
 preview_id = "939f57acd848493789cf8d885f131c1b"
 
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "22b71ced0cbf4255bf3fd0327bb1d035"
+
 # Service Binding: proxy Worker（同一アカウント内の直接呼び出し）
 [[services]]
 binding = "PROXY_SERVICE"

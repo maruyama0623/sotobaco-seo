@@ -533,20 +533,18 @@ export async function handleSlackInteraction(
 ): Promise<Response> {
   const bodyText = await request.text();
 
-  // Verify Slack signature
-  if (env.SLACK_SIGNING_SECRET) {
-    const timestamp =
-      request.headers.get("X-Slack-Request-Timestamp") || "";
-    const signature = request.headers.get("X-Slack-Signature") || "";
-    const valid = await verifySlackSignature(
-      env.SLACK_SIGNING_SECRET,
-      timestamp,
-      bodyText,
-      signature
-    );
-    if (!valid) {
-      return new Response("Invalid signature", { status: 401 });
-    }
+  // Verify Slack signature (必須)
+  const timestamp =
+    request.headers.get("X-Slack-Request-Timestamp") || "";
+  const signature = request.headers.get("X-Slack-Signature") || "";
+  const valid = await verifySlackSignature(
+    env.SLACK_SIGNING_SECRET,
+    timestamp,
+    bodyText,
+    signature
+  );
+  if (!valid) {
+    return new Response("Invalid signature", { status: 401 });
   }
 
   const params = new URLSearchParams(bodyText);

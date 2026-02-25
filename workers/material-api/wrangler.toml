@@ -7,6 +7,10 @@ compatibility_date = "2024-05-12"
 binding = "DOWNLOAD_TOKENS"
 id = "bd3f3d2a51db455e8f1b19d844f3cf36"
 
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "12d4361853ea4fea9949c6f6053d6ab6"
+
 # R2 bucket for PDF storage
 [[r2_buckets]]
 binding = "MATERIAL_BUCKET"

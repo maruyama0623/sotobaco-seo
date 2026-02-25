@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { NewsItem } from "@/lib/news";
 import NewsCard from "./NewsCard";
 
@@ -8,6 +8,14 @@ const CATEGORIES = ["すべて", "アップデート情報", "お知らせ"] as 
 
 export default function CategoryFilter({ items }: { items: NewsItem[] }) {
   const [active, setActive] = useState<string>("すべて");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get("category");
+    if (cat && (CATEGORIES as readonly string[]).includes(cat)) {
+      setActive(cat);
+    }
+  }, []);
 
   const filtered =
     active === "すべて"

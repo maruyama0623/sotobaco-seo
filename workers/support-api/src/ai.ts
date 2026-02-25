@@ -158,19 +158,9 @@ export async function generateAiDraft(
   env: Env,
   systemPrompt: string,
   userMessage: string,
-  pastQA?: Array<{ question: string; answer: string }>,
   relevantPages?: Array<{ url: string; title: string; source: string; snippet: string }>
 ): Promise<AiResult> {
   let enrichedMessage = userMessage;
-  if (pastQA && pastQA.length > 0) {
-    const qaContext = pastQA
-      .map(
-        (qa, i) =>
-          `#${i + 1}\n質問: ${qa.question.slice(0, 300)}\n回答: ${qa.answer.slice(0, 500)}`
-      )
-      .join("\n\n");
-    enrichedMessage += `\n\n## 過去の類似お問い合わせと回答（参考）\n${qaContext}`;
-  }
   if (relevantPages && relevantPages.length > 0) {
     const pagesContext = relevantPages
       .map((p) => {
@@ -197,8 +187,8 @@ export async function generateAiDraft(
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Anthropic API error: ${response.status} ${errorText}`);
+    console.error("Anthropic API error:", response.status);
+    throw new Error(`Anthropic API error: ${response.status}`);
   }
 
   const result = (await response.json()) as {
@@ -310,8 +300,8 @@ ${policy}`;
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Anthropic API error: ${response.status} ${errorText}`);
+    console.error("Anthropic API error:", response.status);
+    throw new Error(`Anthropic API error: ${response.status}`);
   }
 
   const result = (await response.json()) as {

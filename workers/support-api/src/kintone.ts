@@ -40,8 +40,7 @@ export async function createKintoneRecord(
       body: JSON.stringify({ app: appId, record: fields }),
     });
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error("kintone create error:", res.status, errorText);
+      console.error("kintone create error:", res.status);
       return null;
     }
     const data = (await res.json()) as { id: string };
@@ -68,8 +67,7 @@ export async function updateKintoneRecord(
       body: JSON.stringify({ app: appId, id: recordId, record: fields }),
     });
     if (!res.ok) {
-      const errorText = await res.text();
-      console.error("kintone update error:", res.status, errorText);
+      console.error("kintone update error:", res.status);
     }
   } catch (err) {
     console.error("kintone update error:", err);

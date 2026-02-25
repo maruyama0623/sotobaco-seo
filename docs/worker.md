@@ -26,7 +26,7 @@
 workers/support-api/src/
   index.ts      — ルーティング + export default
   types.ts      — 型定義・定数（Env, ContactBody, etc.）
-  utils.ts      — sanitize, corsHeaders, isValidEmail
+  utils.ts      — sanitize, corsHeaders, isValidEmail, stripPII, hashEmail, checkRateLimit
   kintone.ts    — kintone CRUD・ID生成・類似Q&A検索
   email.ts      — SendGrid送信・メール解析（引用除去・アドレス抽出）
   ai.ts         — AIプロンプト構築・回答案生成・関連ページ取得・docs動的取得
@@ -38,12 +38,13 @@ workers/support-api/src/
 
 ### エンドポイント
 
-| メソッド | パス | 機能 |
-|---------|------|------|
-| POST | `/` | お問い合わせフォーム受付 |
-| POST | `/reply` | メール返信ハンドラ（GAS経由） |
-| POST | `/slack/interact` | Slackインタラクション（ボタン・モーダル） |
-| OPTIONS | `*` | CORS preflight |
+| メソッド | パス | 保護 | 機能 |
+|---------|------|------|------|
+| POST | `/` | レート制限 + バリデーション | お問い合わせフォーム受付 |
+| POST | `/feedback` | レート制限 + バリデーション | フィードバックフォーム受付 |
+| POST | `/reply` | Webhookシークレット認証 | メール返信ハンドラ（GAS経由） |
+| POST | `/slack/interact` | Slack署名検証（HMAC） | Slackインタラクション（ボタン・モーダル） |
+| OPTIONS | `*` | — | CORS preflight |
 
 ### Cronトリガー
 
@@ -91,10 +92,11 @@ support-api /reply エンドポイント
 | 情報源 | 内容 | 取得元 |
 |--------|------|--------|
 | サービスドキュメント | サービス仕様・価格・FAQ・会社情報 | GitHub API（developブランチの `docs/sotobaco-portal.md` + `docs/btone.md` + `docs/company.md`） |
-| 類似Q&A | kintoneに蓄積された過去の問い合わせ＋回答 | kintone App 94 |
 | 関連ページ | 操作ガイド・ブログ記事・LPから関連ページURL | proxy Worker `/relevant-pages` |
 
 > docsの動的取得により、ドキュメントを更新すれば再デプロイなしでAI回答案に反映される。GitHub API取得に失敗した場合はAI回答案の生成をスキップし、Slack通知のみ行う（手動対応）。
+
+> **過去Q&A参照（無効化済み）**: kintone App 94 の類似Q&A検索は PII 保護の観点から無効化。`fetchSimilarAnswers` / `extractKeywords` は kintone.ts に関数として残存しているが、contact.ts / reply.ts からの呼び出しを削除済み。将来 kintone 側で回答を匿名化して保存する仕組みができた場合に復活可能。
 
 ### kintone連携
 
@@ -104,7 +106,7 @@ support-api /reply エンドポイント
 | 問い合わせ明細（子） | App 94 | やりとりの履歴。枝番管理、質問内容、回答内容 |
 
 - `question_id`: `YYYYMMDD-NNN` 形式（例: 20260223-001）
-- スレッド管理: KV（THREAD_MAP）でメールアドレス → Slackメッセージ＋kintone情報を紐づけ（30日保持）
+- スレッド管理: KV（THREAD_MAP）でメールアドレスのSHA-256ハッシュ → Slackメッセージ＋kintone情報を紐づけ（30日保持）
 
 ### 環境変数・Secrets
 
@@ -130,7 +132,8 @@ support-api /reply エンドポイント
 
 | Binding | 用途 |
 |---------|------|
-| THREAD_MAP | メールアドレス→Slackスレッド＋kintone情報の紐づけ（30日TTL） |
+| THREAD_MAP | メールアドレスハッシュ→Slackスレッド＋kintone情報の紐づけ（30日TTL） |
+| RATE_LIMIT | IP単位のレート制限カウンター（10分TTL） |
 
 ---
 
@@ -216,7 +219,7 @@ workers/material-api/src/
 
 | メソッド | パス | 機能 |
 |---------|------|------|
-| POST | `/` | 資料ダウンロードフォーム受付（バリデーション→トークン生成→メール送信→Slack通知） |
+| POST | `/` | 資料ダウンロードフォーム受付（レート制限→バリデーション→トークン生成→メール送信→Slack通知） |
 | GET | `/download?token=xxx` | PDFダウンロード（R2から配信、72時間有効トークン認証） |
 | OPTIONS | `*` | CORS preflight |
 
@@ -250,6 +253,7 @@ material-api Worker
 | Binding | 用途 |
 |---------|------|
 | DOWNLOAD_TOKENS | ダウンロードトークン（72時間TTL） |
+| RATE_LIMIT | IP単位のレート制限カウンター（10分TTL） |
 
 ### R2 Bucket
 
@@ -306,3 +310,59 @@ material-api（独立、他Workerとの連携なし）
   ├→ KV（DOWNLOAD_TOKENS）
   └→ R2（PDF格納）
 ```
+
+---
+
+## レート制限
+
+全フォームエンドポイント（contact / feedback / material）にIP単位のレート制限を適用。`/reply`（サーバー間webhook）と `/slack/interact`（HMAC検証済み）は対象外。
+
+| 設定 | 値 |
+|------|-----|
+| ウィンドウ | 10分（固定ウィンドウ） |
+| 上限 | 5回 / IP / ウィンドウ |
+| 超過時 | 429 Too Many Requests（日本語メッセージ） |
+| ストレージ | KV（`RATE_LIMIT`） — キー `rl:{IP}`、TTL = ウィンドウ秒数（自動削除） |
+
+### 入力文字数上限
+
+| フィールド | 上限 |
+|-----------|------|
+| 会社名 | 200文字 |
+| 氏名 | 100文字 |
+| メールアドレス | 254文字（RFC 5321準拠） |
+| 本文・コメント | 5,000文字 |
+
+---
+
+## セキュリティ（PII保護）
+
+顧客の個人情報（PII）が外部サービスに不必要に送信されないよう、以下の対策を実施済み。
+
+### AIプロンプトのPII除去
+
+| 対策 | 詳細 |
+|------|------|
+| 氏名の除去 | contact.ts: AIに送信するプロンプトから `お名前:` 行を削除。会社名と問い合わせ内容のみ送信 |
+| 差出人の除去 | reply.ts: AIに送信するプロンプトから `差出人:` 行を削除。件名とメール本文のみ送信 |
+| 過去Q&AのPIIマスク | ai.ts: `stripPII()` で過去Q&Aテキスト中のメールアドレス・電話番号を自動マスク（`[メール]` `[電話番号]`） |
+
+### データ保護
+
+| 対策 | 詳細 |
+|------|------|
+| KVキーのハッシュ化 | THREAD_MAPのキーにメールアドレスの SHA-256 ハッシュを使用（平文メールを保存しない） |
+| エラーログのサニタイズ | kintone.ts / ai.ts: 外部API のエラーレスポンス本文をログに出力しない（ステータスコードのみ） |
+| エラーレスポンスの汎用化 | proxy: クライアントに内部エラー詳細を返さない（`Internal server error` のみ） |
+
+### AIに送信されるデータの範囲
+
+| データ | 送信有無 | 備考 |
+|--------|---------|------|
+| 会社名 | 送信する | 回答案の文脈に必要 |
+| 問い合わせ内容 | 送信する | 回答案生成に必須 |
+| 氏名 | **送信しない** | プレースホルダー（【問い合わせ者の姓】）で代替 |
+| メールアドレス | **送信しない** | — |
+| 過去Q&A | **送信しない** | PII保護のため無効化済み（将来匿名化対応後に復活可能） |
+| サービスドキュメント | 送信する | GitHub APIから動的取得（公開ドキュメント） |
+| 関連ページURL | 送信する | proxy Workerのクロール結果（公開ページ） |

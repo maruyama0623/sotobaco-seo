@@ -2,7 +2,7 @@ export interface Env {
   SENDGRID_API_KEY: string;
   SLACK_WEBHOOK_URL?: string;
   SLACK_BOT_TOKEN?: string;
-  SLACK_SIGNING_SECRET?: string;
+  SLACK_SIGNING_SECRET: string;
   SLACK_CHANNEL_ID?: string;
   FROM_EMAIL: string;
   REPLY_TO_EMAIL: string;
@@ -20,6 +20,7 @@ export interface Env {
   PROXY_SERVICE?: Fetcher;
   GITHUB_TOKEN?: string;
   GITHUB_REPO?: string;
+  RATE_LIMIT: KVNamespace;
 }
 
 export const CATEGORY_LABELS: Record<string, string> = {

@@ -1,7 +1,8 @@
 import type { Env, ReplyBody, SlackActionMeta, ThreadMapValue } from "./types";
 import { stripQuotedContent, extractEmail, extractName } from "./email";
+import { hashEmail } from "./utils";
 import { fetchServiceContext, buildReplyPrompt, generateAiDraft, fetchRelevantPages } from "./ai";
-import { fetchSimilarAnswers, isKintoneEnabled, toKintoneDate, createKintoneRecord } from "./kintone";
+import { isKintoneEnabled, toKintoneDate, createKintoneRecord } from "./kintone";
 import { buildSummaryBlocks, buildContentBlocks, buildAiDraftBlocks, sendSlackMessage } from "./slack";
 
 export async function handleReply(request: Request, env: Env): Promise<Response> {
@@ -35,13 +36,12 @@ export async function handleReply(request: Request, env: Env): Promise<Response>
   const strippedBody = stripQuotedContent(body.body);
 
   try {
-    const userMessage = `差出人: ${body.from}\n件名: ${body.subject}\n\nメール本文:\n${strippedBody}`;
+    const userMessage = `件名: ${body.subject}\n\nメール本文:\n${strippedBody}`;
 
     const aiResult = env.ANTHROPIC_API_KEY
       ? await (async () => {
-          const [serviceContext, pastQA, relevantPages] = await Promise.all([
+          const [serviceContext, relevantPages] = await Promise.all([
             fetchServiceContext(env),
-            fetchSimilarAnswers(env, strippedBody),
             fetchRelevantPages(env, strippedBody),
           ]);
           if (!serviceContext) return null;
@@ -49,7 +49,6 @@ export async function handleReply(request: Request, env: Env): Promise<Response>
             env,
             buildReplyPrompt(serviceContext),
             userMessage,
-            pastQA,
             relevantPages
           );
         })().catch((err) => {
@@ -62,10 +61,11 @@ export async function handleReply(request: Request, env: Env): Promise<Response>
     const recipientName = extractName(body.from);
 
     // スレッド管理: 同じメールアドレスの既存スレッドを検索
+    const emailKey = await hashEmail(recipientEmail);
     let threadTs: string | undefined;
     let existingThread: ThreadMapValue | undefined;
     if (env.THREAD_MAP) {
-      const stored = await env.THREAD_MAP.get(recipientEmail.toLowerCase());
+      const stored = await env.THREAD_MAP.get(emailKey);
       if (stored) {
         try {
           existingThread = JSON.parse(stored) as ThreadMapValue;
@@ -139,7 +139,7 @@ export async function handleReply(request: Request, env: Env): Promise<Response>
           detailRecordId: detailId || existingThread.detailRecordId,
         };
         await env.THREAD_MAP.put(
-          recipientEmail.toLowerCase(),
+          emailKey,
           JSON.stringify(updated),
           { expirationTtl: 60 * 60 * 24 * 30 }
         ).catch((err) => console.error("KV put error:", err));
@@ -151,7 +151,7 @@ export async function handleReply(request: Request, env: Env): Promise<Response>
         ts: messageTs,
       };
       await env.THREAD_MAP.put(
-        recipientEmail.toLowerCase(),
+        emailKey,
         JSON.stringify(kvValue),
         { expirationTtl: 60 * 60 * 24 * 30 }
       ).catch((err) => console.error("KV put error:", err));

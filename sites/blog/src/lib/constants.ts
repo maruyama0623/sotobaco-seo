@@ -7,7 +7,7 @@ export const EXTERNAL_URLS = {
   companyAbout: "https://sotobaco.com/company",
   terms: "https://sotobaco.com/terms",
   privacy: "https://sotobaco.com/privacy",
-  update: "https://sotobaco.com/update/",
+  update: "https://sotobaco.com/news/",
   material: "https://sotobaco.com/sotobacoportal/material/",
 } as const;
 
