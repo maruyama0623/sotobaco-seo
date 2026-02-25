@@ -138,10 +138,9 @@ export async function handleContact(
 
     const titleText =
       titleRes.status === "fulfilled" ? titleRes.value : "新しいお問い合わせ";
-    const headerText =
-      sanitizedData.category !== "other"
-        ? "【至急確認】サービスに対するお問い合わせ"
-        : "【要確認】コーポレートサイトからのお問い合わせ";
+    const headerText = body.category
+      ? "【要確認】コーポレートサイトからのお問い合わせ"
+      : "【至急確認】サービスに対するお問い合わせ";
 
     // Slack通知: 親メッセージ → スレッド返信（差出人＋内容）→ スレッド返信（AI回答案）
     const summaryBlocks = buildSummaryBlocks(headerText, [

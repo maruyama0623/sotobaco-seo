@@ -1,8 +1,8 @@
 import type { Env, LearningMeta } from "./types";
 import { CATEGORY_LABELS } from "./types";
 import { stripPII } from "./utils";
-import { generateDocBrushUp, generateLearningSummary } from "./ai";
-import { sendSlackMessage } from "./slack";
+import { generateDocPatch, applyDocPatch, generateLearningSummary } from "./ai";
+import { sendSlackMessage, buildLongTextBlocks } from "./slack";
 
 const SERVICE_DOC_PATHS: Record<string, string> = {
   "sotobaco-portal": "docs/sotobaco-portal.md",
@@ -277,7 +277,7 @@ export async function handleLearningModalSubmit(
   const serviceLabel = CATEGORY_LABELS[service] || service;
   const threadTs: string = privateMeta.threadTs;
 
-  // ① スレッドに学習データ投稿
+  // ① スレッドに学習データ投稿（Slack section は最大3000文字のため分割）
   const learningBlocks: Array<Record<string, unknown>> = [
     {
       type: "header",
@@ -296,20 +296,8 @@ export async function handleLearningModalSubmit(
         },
       ],
     },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*困っていたこと:*\n${issue}`,
-      },
-    },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*方針:*\n${policy}`,
-      },
-    },
+    ...buildLongTextBlocks(`*困っていたこと:*\n${issue}`),
+    ...buildLongTextBlocks(`*方針:*\n${policy}`),
   ];
 
   await sendSlackMessage(env, learningBlocks, threadTs);
@@ -351,18 +339,18 @@ export async function handleLearningModalSubmit(
     return;
   }
 
-  // ② AI で docs/*.md をブラッシュアップ
+  // ② AI でパッチ生成 → docs/*.md に適用
   try {
     const { content: currentDoc, sha } = await getFileFromGitHub(
       env,
       docPath
     );
 
-    let updatedDoc: string | null;
+    let patch: { section: string; content: string } | null;
     try {
-      updatedDoc = await generateDocBrushUp(env, currentDoc, issue, policy);
+      patch = await generateDocPatch(env, currentDoc, issue, policy);
     } catch (err) {
-      console.error("AI brushup error:", err);
+      console.error("AI patch error:", err);
       await sendSlackMessage(
         env,
         [
@@ -383,7 +371,7 @@ export async function handleLearningModalSubmit(
     }
 
     // AI が変更不要と判断
-    if (!updatedDoc) {
+    if (!patch) {
       await sendSlackMessage(
         env,
         [
@@ -402,6 +390,8 @@ export async function handleLearningModalSubmit(
       await updateButtonMessage(":white_check_mark: *学習完了*（更新不要）");
       return;
     }
+
+    const updatedDoc = applyDocPatch(currentDoc, patch);
 
     // ③ GitHub API でコミット
     try {

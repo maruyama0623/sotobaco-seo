@@ -60,9 +60,11 @@ export async function sendSlackMessage(
       ok: boolean;
       error?: string;
       ts?: string;
+      response_metadata?: { messages?: string[] };
     };
     if (!data.ok) {
-      throw new Error(`Slack API error: ${data.error}`);
+      const details = data.response_metadata?.messages?.join("; ") || "";
+      throw new Error(`Slack API error: ${data.error}${details ? ` (${details})` : ""}`);
     }
     return data.ts || null;
   } else if (env.SLACK_WEBHOOK_URL) {
@@ -196,12 +198,31 @@ export function buildContentBlocks(
   messageLabel: string,
   messageText: string
 ): Array<Record<string, unknown>> {
-  return [
-    {
-      type: "section",
-      text: { type: "mrkdwn", text: `*${messageLabel}:*\n${messageText}` },
-    },
-  ];
+  return buildLongTextBlocks(`*${messageLabel}:*\n${messageText}`);
+}
+
+/** 長いテキストを3000文字以内のsectionブロックに分割 */
+export function buildLongTextBlocks(
+  text: string,
+  limit = 2900
+): Array<Record<string, unknown>> {
+  if (text.length <= limit) {
+    return [{ type: "section", text: { type: "mrkdwn", text } }];
+  }
+  const blocks: Array<Record<string, unknown>> = [];
+  let remaining = text;
+  while (remaining.length > 0) {
+    if (remaining.length <= limit) {
+      blocks.push({ type: "section", text: { type: "mrkdwn", text: remaining } });
+      break;
+    }
+    // 改行位置で分割（見つからなければ limit で強制切断）
+    let splitAt = remaining.lastIndexOf("\n", limit);
+    if (splitAt <= 0) splitAt = limit;
+    blocks.push({ type: "section", text: { type: "mrkdwn", text: remaining.slice(0, splitAt) } });
+    remaining = remaining.slice(splitAt).replace(/^\n/, "");
+  }
+  return blocks;
 }
 
 /** スレッド返信2用ブロック（AI回答案 + ボタン） */

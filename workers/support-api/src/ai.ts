@@ -224,15 +224,29 @@ export async function generateLearningSummary(
   const systemPrompt = `お問い合わせ対応のSlackスレッド内容を読み、以下の2点を要約してください。
 
 1. 「困っていたこと」: お客様が何に困っていたのかを簡潔に要約（1〜3文）
-2. 「方針」: この問い合わせに対してソトバコとしてどう対応したか・今後の方針を箇条書きで要約（2〜5項目、各項目は「- 」で始める）
+2. 「方針」: 今後同じ問い合わせが来た場合にそのまま回答として使える内容を作成する
+
+## 方針の書き方ルール
+- 冒頭は「今後このような問い合わせが来た場合は以下の回答をしてください。」で始める
+- 回答内容を「■ 見出し」で構造化する
+- 手順が複数ある場合は「【① 手順名】」「【② 手順名】」のように番号付きで区別する
+- 各手順は具体的な操作手順を省略せず記載する（画面名・ボタン名・設定値など）
+- Markdown記法（**太字**、- 箇条書き）は使わず、■【】などの記号で構造化する
 
 以下の形式で出力してください（他の文章は不要）:
 ISSUE:
 （困っていたことの要約）
 
 POLICY:
-- （方針1）
-- （方針2）`;
+今後このような問い合わせが来た場合は以下の回答をしてください。
+
+■ （見出し）
+
+【① （手順名）】
+（具体的な操作手順）
+
+【② （手順名）】
+（具体的な操作手順）`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -243,7 +257,7 @@ POLICY:
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 1024,
+      max_tokens: 2048,
       system: systemPrompt,
       messages: [{ role: "user", content: threadContext }],
     }),
@@ -265,27 +279,41 @@ POLICY:
   };
 }
 
-/** 学習データを基にドキュメントをブラッシュアップ */
-export async function generateDocBrushUp(
+/** ドキュメントから見出し行を抽出 */
+function extractHeadings(doc: string): string {
+  return doc
+    .split("\n")
+    .filter((line) => /^#{1,4}\s/.test(line))
+    .join("\n");
+}
+
+/** 学習データを基にドキュメントへ追加するパッチを生成 */
+export async function generateDocPatch(
   env: Env,
   currentDoc: string,
   issue: string,
   policy: string
-): Promise<string | null> {
+): Promise<{ section: string; content: string } | null> {
+  const headings = extractHeadings(currentDoc);
+
   const systemPrompt = `あなたはサービスドキュメントの編集担当です。
-お問い合わせ対応から得られた学習データを基に、既存のドキュメントをブラッシュアップしてください。
+お問い合わせ対応から得られた学習データを基に、ドキュメントに追加すべき内容を決定してください。
+
+## ドキュメントの見出し一覧
+${headings}
 
 ## ルール
-- 既存の構造（見出し・セクション順序）を維持する
-- FAQ追加・説明補足・注意事項追加・トラブルシューティング追記など、適切な箇所に情報を追加する
-- 既存の記述と重複する情報は追加しない
-- 変更が不要な場合は「NO_CHANGE」とだけ出力する
-- 変更がある場合はドキュメント全文を出力する（差分ではなく全文）`;
+- 追加先のセクション見出しと、追加する内容だけを出力する
+- 既存の記述と重複する情報は追加不要 → 「NO_CHANGE」とだけ出力する
+- FAQの場合は「| 番号 | 質問 | 回答 |」のテーブル行形式で出力する
+- FAQ以外のセクションへの追加は、そのセクションの末尾に自然に追加できるMarkdownテキストで出力する
 
-  const userMessage = `## 現在のドキュメント
-${currentDoc}
+## 出力形式（厳守）
+SECTION: <挿入先の見出し（例: ## FAQ一覧）>
+CONTENT:
+<追加する内容>`;
 
-## 学習データ
+  const userMessage = `## 学習データ
 ### お客様が困っていたこと
 ${issue}
 
@@ -301,7 +329,7 @@ ${policy}`;
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 8192,
+      max_tokens: 1024,
       system: systemPrompt,
       messages: [{ role: "user", content: userMessage }],
     }),
@@ -318,5 +346,52 @@ ${policy}`;
   const text = result.content?.[0]?.text || "";
 
   if (text.trim() === "NO_CHANGE") return null;
-  return text;
+
+  const sectionMatch = text.match(/^SECTION:\s*(.+)/m);
+  const contentMatch = text.match(/CONTENT:\n([\s\S]+)$/);
+
+  if (!sectionMatch || !contentMatch) return null;
+
+  return {
+    section: sectionMatch[1].trim(),
+    content: contentMatch[1].trim(),
+  };
+}
+
+/** パッチをドキュメントに適用（指定セクションの末尾に追加） */
+export function applyDocPatch(
+  doc: string,
+  patch: { section: string; content: string }
+): string {
+  // セクション見出しの正規表現パターンを作成（#の数を柔軟にマッチ）
+  const sectionHeading = patch.section.replace(/^#+\s*/, "");
+  const lines = doc.split("\n");
+  let insertIndex = -1;
+  let sectionLevel = 0;
+
+  // セクション見出しを探す
+  for (let i = 0; i < lines.length; i++) {
+    const headingMatch = lines[i].match(/^(#{1,4})\s+(.+)/);
+    if (headingMatch && headingMatch[2].trim() === sectionHeading) {
+      sectionLevel = headingMatch[1].length;
+      // このセクションの終端（次の同レベル以上の見出し）を探す
+      for (let j = i + 1; j < lines.length; j++) {
+        const nextMatch = lines[j].match(/^(#{1,4})\s/);
+        if (nextMatch && nextMatch[1].length <= sectionLevel) {
+          insertIndex = j;
+          break;
+        }
+      }
+      if (insertIndex === -1) insertIndex = lines.length;
+      break;
+    }
+  }
+
+  if (insertIndex === -1) {
+    // セクションが見つからない場合は末尾に追加
+    return doc + "\n\n" + patch.content + "\n";
+  }
+
+  lines.splice(insertIndex, 0, patch.content, "");
+  return lines.join("\n");
 }

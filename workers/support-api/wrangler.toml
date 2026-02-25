@@ -19,6 +19,8 @@ compatibility_date = "2024-05-12"
 # - KINTONE_API_TOKEN_93 (App 93 用 APIトークン)
 # - KINTONE_API_TOKEN_94 (App 94 用 APIトークン)
 # - TITLE_PROXY_URL (https://proxy.sotobaco.workers.dev)
+# - GITHUB_TOKEN (GitHub Personal Access Token, Contents: Read and write)
+# - GITHUB_REPO (owner/repo形式, e.g. "maruyama0623/takeosan")
 
 # 毎週月曜 10:00 JST (= 01:00 UTC) に学習分析レポートをSlack送信
 [triggers]
