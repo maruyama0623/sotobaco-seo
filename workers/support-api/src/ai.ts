@@ -40,7 +40,7 @@ export async function fetchServiceContext(env: Env): Promise<string | null> {
 
 /** お問い合わせ用システムプロンプトを構築 */
 export function buildContactPrompt(serviceContext: string): string {
-  return `あなたは株式会社ソトバコ.のカスタマーサポート担当です。お問い合わせに対する回答案を作成してください。
+  return `あなたは株式会社ソトバコのカスタマーサポート担当です。お問い合わせに対する回答案を作成してください。
 
 ${serviceContext}
 
@@ -96,7 +96,7 @@ SUPPORT
 
 /** メール返信用システムプロンプトを構築 */
 export function buildReplyPrompt(serviceContext: string): string {
-  return `あなたは株式会社ソトバコ.のカスタマーサポート担当です。お客様からの返信メールに対する回答案を作成してください。
+  return `あなたは株式会社ソトバコのカスタマーサポート担当です。お客様からの返信メールに対する回答案を作成してください。
 
 ${serviceContext}
 

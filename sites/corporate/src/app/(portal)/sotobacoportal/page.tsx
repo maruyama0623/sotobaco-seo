@@ -31,7 +31,7 @@ const jsonLd = {
   },
   provider: {
     "@type": "Organization",
-    name: "株式会社ソトバコ.",
+    name: "株式会社ソトバコ",
     url: "https://sotobaco.com/",
   },
   description:
