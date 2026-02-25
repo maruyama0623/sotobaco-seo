@@ -8,6 +8,9 @@ export interface Env {
   DOWNLOAD_TOKENS: KVNamespace;
   MATERIAL_BUCKET: R2Bucket;
   RATE_LIMIT: KVNamespace;
+  KINTONE_SUBDOMAIN?: string;
+  KINTONE_APP_ID_95?: string;
+  KINTONE_API_TOKEN_95?: string;
 }
 
 /* ── Select options (allowlists) ── */
@@ -124,6 +127,37 @@ function isValidOption(value: string, options: string[]): boolean {
   return options.includes(value);
 }
 
+/* ── kintone ── */
+
+function isKintoneEnabled(env: Env): boolean {
+  return !!(env.KINTONE_SUBDOMAIN && env.KINTONE_APP_ID_95 && env.KINTONE_API_TOKEN_95);
+}
+
+async function createKintoneRecord(
+  env: Env,
+  fields: Record<string, { value: string }>
+): Promise<string | null> {
+  const url = `https://${env.KINTONE_SUBDOMAIN}.cybozu.com/k/v1/record.json`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "X-Cybozu-API-Token": env.KINTONE_API_TOKEN_95!,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ app: env.KINTONE_APP_ID_95, record: fields }),
+  });
+  if (!res.ok) {
+    console.error("kintone create error:", res.status);
+    return null;
+  }
+  const data = (await res.json()) as { id: string };
+  return data.id;
+}
+
+function kintoneRecordUrl(env: Env, recordId: string): string {
+  return `https://${env.KINTONE_SUBDOMAIN}.cybozu.com/k/${env.KINTONE_APP_ID_95}/show#record=${recordId}`;
+}
+
 /* ── Rate Limiting ── */
 
 const RATE_LIMIT_WINDOW = 600;
@@ -223,9 +257,11 @@ https://sotobaco.com
 
 async function sendSlackNotification(
   env: Env,
-  data: MaterialBody
+  data: MaterialBody,
+  kintoneUrl: string | null
 ): Promise<void> {
-  const blocks = [
+  // PIIなし: 会社名・役職・業種 + kintoneリンク
+  const blocks: Record<string, unknown>[] = [
     {
       type: "header",
       text: { type: "plain_text", text: "【通知】資料請求がありました", emoji: true },
@@ -234,35 +270,27 @@ async function sendSlackNotification(
       type: "section",
       fields: [
         { type: "mrkdwn", text: `*会社名:*\n${data.company}` },
-        { type: "mrkdwn", text: `*お名前:*\n${data.name}` },
-        { type: "mrkdwn", text: `*メールアドレス:*\n${data.email}` },
         { type: "mrkdwn", text: `*役職:*\n${data.position}` },
-      ],
-    },
-    {
-      type: "section",
-      fields: [
         { type: "mrkdwn", text: `*業種・業態:*\n${data.industry}` },
       ],
     },
-    {
-      type: "section",
-      fields: [
-        { type: "mrkdwn", text: `*会社規模:*\n${data.companySize}` },
-        { type: "mrkdwn", text: `*目的:*\n${data.purpose}` },
-        { type: "mrkdwn", text: `*開始時期:*\n${data.startTiming}` },
-        { type: "mrkdwn", text: `*kintone利用歴:*\n${data.kintoneHistory}` },
-      ],
-    },
-    {
-      type: "section",
-      fields: [
-        { type: "mrkdwn", text: `*kintoneユーザー数:*\n${data.kintoneUsers}` },
-        { type: "mrkdwn", text: `*作成したアプリ数:*\n${data.kintoneApps}` },
-      ],
-    },
-    { type: "divider" },
   ];
+
+  if (kintoneUrl) {
+    blocks.push({
+      type: "actions",
+      elements: [
+        {
+          type: "button",
+          text: { type: "plain_text", text: "kintoneで詳細を見る", emoji: true },
+          url: kintoneUrl,
+          style: "primary",
+        },
+      ],
+    });
+  }
+
+  blocks.push({ type: "divider" });
 
   if (env.SLACK_BOT_TOKEN && env.SLACK_CHANNEL_ID) {
     const res = await fetch("https://slack.com/api/chat.postMessage", {
@@ -277,9 +305,9 @@ async function sendSlackNotification(
         text: "【通知】資料請求がありました",
       }),
     });
-    const data = (await res.json()) as { ok: boolean; error?: string };
-    if (!data.ok) {
-      throw new Error(`Slack API error: ${data.error}`);
+    const resData = (await res.json()) as { ok: boolean; error?: string };
+    if (!resData.ok) {
+      throw new Error(`Slack API error: ${resData.error}`);
     }
   } else if (env.SLACK_WEBHOOK_URL) {
     await fetch(env.SLACK_WEBHOOK_URL, {
@@ -460,15 +488,37 @@ export default {
     const baseUrl = new URL(request.url);
     const downloadUrl = `${baseUrl.origin}/download?token=${token}`;
 
-    // Send email and Slack notification in parallel
     try {
+      // kintoneレコード作成（SlackリンクのためにIDが必要なので先に実行）
+      let kintoneUrl: string | null = null;
+      if (isKintoneEnabled(env)) {
+        const recordId = await createKintoneRecord(env, {
+          service: { value: "ソトバコポータル" },
+          company: { value: sanitizedData.company },
+          name: { value: sanitizedData.name },
+          email: { value: sanitizedData.email },
+          position: { value: sanitizedData.position },
+          industry: { value: sanitizedData.industry },
+          companySize: { value: sanitizedData.companySize },
+          purpose: { value: sanitizedData.purpose },
+          startTiming: { value: sanitizedData.startTiming },
+          kintoneHistory: { value: sanitizedData.kintoneHistory },
+          kintoneUsers: { value: sanitizedData.kintoneUsers },
+          kintoneApps: { value: sanitizedData.kintoneApps },
+        });
+        if (recordId) {
+          kintoneUrl = kintoneRecordUrl(env, recordId);
+        }
+      }
+
+      // メール送信 + Slack通知を並列実行
       const [emailRes, slackRes] = await Promise.allSettled([
         sendDownloadEmail(env, sanitizedData, downloadUrl),
-        sendSlackNotification(env, sanitizedData),
+        sendSlackNotification(env, sanitizedData, kintoneUrl),
       ]);
 
       if (emailRes.status === "rejected") {
-        console.error("SendGrid error:", emailRes.reason);
+        console.error("SendGrid error");
         return new Response(
           JSON.stringify({ error: "メール送信に失敗しました" }),
           {
@@ -479,8 +529,7 @@ export default {
       }
 
       if (emailRes.status === "fulfilled" && !emailRes.value.ok) {
-        const errorText = await emailRes.value.text();
-        console.error("SendGrid API error:", emailRes.value.status, errorText);
+        console.error("SendGrid API error:", emailRes.value.status);
         return new Response(
           JSON.stringify({ error: "メール送信に失敗しました" }),
           {
@@ -491,7 +540,7 @@ export default {
       }
 
       if (slackRes.status === "rejected") {
-        console.error("Slack notification error:", slackRes.reason);
+        console.error("Slack notification failed");
         // Slack通知失敗はユーザーへのレスポンスに影響させない
       }
 
@@ -500,7 +549,7 @@ export default {
         headers: { ...headers, "Content-Type": "application/json" },
       });
     } catch (err) {
-      console.error("Unexpected error:", err);
+      console.error("Unexpected error");
       return new Response(
         JSON.stringify({ error: "Internal server error" }),
         {

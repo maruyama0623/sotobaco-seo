@@ -12,7 +12,7 @@
 |--------|-----|------|
 | support-api | `support-api.sotobaco.workers.dev` | お問い合わせ受付・自動返信・AI回答案・Slack通知・kintone連携・週次レポート |
 | proxy | `proxy.sotobaco.workers.dev` | AIプロキシ（タイトル要約・回答案生成・コンテンツクロール・学習分析・GA4データ取得） |
-| material-api | `material-api.sotobaco.workers.dev` | 資料ダウンロード（フォーム受付・メール送信・R2からPDF配信） |
+| material-api | `material-api.sotobaco.workers.dev` | 資料ダウンロード（フォーム受付・メール送信・R2からPDF配信・kintone連携） |
 
 ---
 
@@ -26,7 +26,7 @@
 workers/support-api/src/
   index.ts      — ルーティング + export default
   types.ts      — 型定義・定数（Env, ContactBody, etc.）
-  utils.ts      — sanitize, corsHeaders, isValidEmail, stripPII, hashEmail, checkRateLimit
+  utils.ts      — sanitize, corsHeaders, isValidEmail, stripPII, hashEmail, timingSafeEqual, checkRateLimit, checkWebhookRateLimit
   kintone.ts    — kintone CRUD・ID生成・類似Q&A検索
   email.ts      — SendGrid送信・メール解析（引用除去・アドレス抽出）
   ai.ts         — AIプロンプト構築・回答案生成・関連ページ取得・docs動的取得
@@ -42,7 +42,7 @@ workers/support-api/src/
 |---------|------|------|------|
 | POST | `/` | レート制限 + バリデーション | お問い合わせフォーム受付 |
 | POST | `/feedback` | レート制限 + バリデーション | フィードバックフォーム受付 |
-| POST | `/reply` | Webhookシークレット認証 | メール返信ハンドラ（GAS経由） |
+| POST | `/reply` | Webhookシークレット認証（timing-safe） + レート制限 | メール返信ハンドラ（GAS経由） |
 | POST | `/slack/interact` | Slack署名検証（HMAC） | Slackインタラクション（ボタン・モーダル） |
 | OPTIONS | `*` | — | CORS preflight |
 
@@ -61,8 +61,7 @@ support-api Worker
   ├→ SendGrid: 自動返信メール送信
   ├→ kintone: App 93（親）+ App 94（明細）にレコード作成
   ├→ proxy Worker: 関連ページ取得（/relevant-pages）
-  ├→ kintone App 94: 類似Q&A検索
-  └→ Anthropic API: AI回答案生成（GitHub docs + 類似Q&A + 関連ページURL）
+  └→ Anthropic API: AI回答案生成（GitHub docs + 関連ページURL）
        ↓
      Slack通知（回答案 + 送信/編集ボタン）
        ↓
@@ -96,6 +95,13 @@ support-api /reply エンドポイント
 
 > docsの動的取得により、ドキュメントを更新すれば再デプロイなしでAI回答案に反映される。GitHub API取得に失敗した場合はAI回答案の生成をスキップし、Slack通知のみ行う（手動対応）。
 
+### AI回答案のルール
+
+- 挨拶文: 「お世話になっております。株式会社ソトバコ サポートチームです。」
+- 宛名は「会社名＋ご担当者様」を使用（個人名はAIに送信しない）
+- Markdown記法はプロンプトで禁止 + 後処理で自動除去（`**太字**`→太字、`*斜体*`→斜体、`- `→`・`）
+- メール送信元: 受付完了メール=`noreply@sotobaco.com`（FROM_EMAIL）、Slack返信=`support@sotobaco.co.jp`（SUPPORT_FROM_EMAIL）
+
 > **過去Q&A参照（無効化済み）**: kintone App 94 の類似Q&A検索は PII 保護の観点から無効化。`fetchSimilarAnswers` / `extractKeywords` は kintone.ts に関数として残存しているが、contact.ts / reply.ts からの呼び出しを削除済み。将来 kintone 側で回答を匿名化して保存する仕組みができた場合に復活可能。
 
 ### kintone連携
@@ -106,14 +112,18 @@ support-api /reply エンドポイント
 | 問い合わせ明細（子） | App 94 | やりとりの履歴。枝番管理、質問内容、回答内容 |
 
 - `question_id`: `YYYYMMDD-NNN` 形式（例: 20260223-001）
-- スレッド管理: KV（THREAD_MAP）でメールアドレスのSHA-256ハッシュ → Slackメッセージ＋kintone情報を紐づけ（30日保持）
+- スレッド管理: KV（THREAD_MAP）で `questionId` をキーとして、Slackメッセージ＋kintone情報＋PII（email, name）を集約（30日TTL）
+  - 顧客返信時、メール件名の `[Q-YYYYMMDD-NNN]` からquestionIdを抽出してKV検索し、既存スレッドに返信を追加
+  - questionIdなし（件名から抽出不可）の場合はフォールバックIDを生成して新規KV作成
+  - やり取りがある度にKV putでTTLがリセットされ、アクティブな問い合わせは自動延長される
 
 ### 環境変数・Secrets
 
 | 変数名 | 用途 |
 |--------|------|
 | SENDGRID_API_KEY | メール送信 |
-| FROM_EMAIL | 送信元メールアドレス |
+| FROM_EMAIL | 自動返信メール送信元（noreply@sotobaco.com） |
+| SUPPORT_FROM_EMAIL | Slack返信メール送信元（support@sotobaco.co.jp） |
 | REPLY_TO_EMAIL | 返信先（support@sotobaco.co.jp） |
 | CORS_ORIGIN | 許可するオリジン |
 | ANTHROPIC_API_KEY | AI回答案生成 |
@@ -132,8 +142,8 @@ support-api /reply エンドポイント
 
 | Binding | 用途 |
 |---------|------|
-| THREAD_MAP | メールアドレスハッシュ→Slackスレッド＋kintone情報の紐づけ（30日TTL） |
-| RATE_LIMIT | IP単位のレート制限カウンター（10分TTL） |
+| THREAD_MAP | questionId→Slackスレッド＋kintone情報＋PII（email, name）の集約（30日TTL、アクティブ時自動延長） |
+| RATE_LIMIT | IP単位のレート制限カウンター（10分TTL）。フォーム用（`rl:`prefix, 5req/10min）とwebhook用（`wrl:`prefix, 30req/10min） |
 
 ---
 
@@ -206,7 +216,7 @@ workers/proxy/src/
 
 ## 3. material-api
 
-ソトバコポータルの資料ダウンロードフォーム。フォーム送信→ダウンロードURL生成→メール送信→Slack通知を処理する。
+ソトバコポータルの資料ダウンロードフォーム。フォーム送信→ダウンロードURL生成→メール送信→Slack通知→kintoneリード登録を処理する。
 
 ### ファイル構成
 
@@ -231,22 +241,48 @@ workers/material-api/src/
 material-api Worker
   ├→ バリデーション（会社名・名前・メール + セレクト項目のホワイトリストチェック）
   ├→ KV: ダウンロードトークン生成（72時間TTL）
+  ├→ kintone: App 95（資料請求リード）にレコード作成 → レコードID取得
   ├→ SendGrid: ダウンロードURLをメール送信
-  └→ Slack Webhook: リード情報を通知
+  └→ Slack Bot API: リード通知（PIIなし + kintoneレコードリンクボタン）
 ```
 
 ### 収集データ（リードクオリフィケーション）
 
 フォームで以下の情報を収集：会社名、氏名、メール、役職、業種・業態、会社規模、目的、開始時期、kintone利用歴、kintoneユーザー数、作成アプリ数
 
+### kintone連携
+
+| アプリ | アプリID | 用途 |
+|--------|---------|------|
+| 資料請求リード管理 | App 95 | 資料請求フォームからのリード情報を自動登録 |
+
+登録フィールド: service（固定: ソトバコポータル）, company, name, email, position, industry, companySize, purpose, startTiming, kintoneHistory, kintoneUsers, kintoneApps
+
+- 環境変数（`KINTONE_SUBDOMAIN`, `KINTONE_APP_ID_95`, `KINTONE_API_TOKEN_95`）が全て設定されている場合のみ有効
+- kintone登録失敗はユーザーレスポンスに影響させない（メール送信・Slack通知と並列実行）
+
+### Slack通知のPII配置
+
+| メッセージ | 表示内容 | PII |
+|-----------|---------|-----|
+| 親メッセージ（チャンネル一覧で見える） | 会社名・役職・業種 + kintoneレコードリンクボタン | なし |
+
+- SlackにはPIIを一切送信しない。リード詳細（氏名・メール・アンケート項目）はkintoneレコードで確認する
+- kintone未設定時はリンクボタンなしの通知のみ
+
 ### 環境変数・Secrets
 
 | 変数名 | 用途 |
 |--------|------|
 | SENDGRID_API_KEY | メール送信 |
-| SLACK_WEBHOOK_URL | Slack通知 |
+| SLACK_WEBHOOK_URL | Slack通知（レガシー Webhook、フォールバック） |
+| SLACK_BOT_TOKEN | Slack Bot API（Bot Token、親子メッセージ分離に必要） |
+| SLACK_CHANNEL_ID | Slack通知先チャンネル |
 | FROM_EMAIL | 送信元メールアドレス |
 | CORS_ORIGIN | 許可するオリジン |
+| KINTONE_SUBDOMAIN | kintoneサブドメイン（任意） |
+| KINTONE_APP_ID_95 | kintone App 95 ID（任意） |
+| KINTONE_API_TOKEN_95 | kintone App 95 APIトークン（任意） |
 
 ### KV Namespace
 
@@ -306,7 +342,8 @@ proxy
 
 material-api（独立、他Workerとの連携なし）
   ├→ SendGrid
-  ├→ Slack Webhook
+  ├→ Slack Bot API（親メッセージ + スレッド返信）
+  ├→ kintone（App 95 — 資料請求リード、環境変数設定時のみ）
   ├→ KV（DOWNLOAD_TOKENS）
   └→ R2（PDF格納）
 ```
@@ -315,14 +352,18 @@ material-api（独立、他Workerとの連携なし）
 
 ## レート制限
 
-全フォームエンドポイント（contact / feedback / material）にIP単位のレート制限を適用。`/reply`（サーバー間webhook）と `/slack/interact`（HMAC検証済み）は対象外。
+全エンドポイントにIP単位のレート制限を適用。`/slack/interact`（HMAC検証済み）のみ対象外。
+
+| 対象 | キープレフィックス | 上限 | 備考 |
+|------|-------------------|------|------|
+| フォーム（contact / feedback / material） | `rl:{IP}` | 5回 / 10分 | 日本語エラーメッセージ |
+| Webhook（/reply） | `wrl:{IP}` | 30回 / 10分 | secret認証後に適用 |
 
 | 設定 | 値 |
 |------|-----|
 | ウィンドウ | 10分（固定ウィンドウ） |
-| 上限 | 5回 / IP / ウィンドウ |
-| 超過時 | 429 Too Many Requests（日本語メッセージ） |
-| ストレージ | KV（`RATE_LIMIT`） — キー `rl:{IP}`、TTL = ウィンドウ秒数（自動削除） |
+| 超過時 | 429 Too Many Requests |
+| ストレージ | KV（`RATE_LIMIT`）— TTL = ウィンドウ秒数（自動削除） |
 
 ### 入力文字数上限
 
@@ -337,32 +378,60 @@ material-api（独立、他Workerとの連携なし）
 
 ## セキュリティ（PII保護）
 
-顧客の個人情報（PII）が外部サービスに不必要に送信されないよう、以下の対策を実施済み。
+顧客の個人情報（PII）を最小限の箇所に集約し、外部サービスへの不必要な送信を防止する。
 
-### AIプロンプトのPII除去
+### PII集約アーキテクチャ
 
-| 対策 | 詳細 |
-|------|------|
-| 氏名の除去 | contact.ts: AIに送信するプロンプトから `お名前:` 行を削除。会社名と問い合わせ内容のみ送信 |
-| 差出人の除去 | reply.ts: AIに送信するプロンプトから `差出人:` 行を削除。件名とメール本文のみ送信 |
-| 過去Q&AのPIIマスク | ai.ts: `stripPII()` で過去Q&Aテキスト中のメールアドレス・電話番号を自動マスク（`[メール]` `[電話番号]`） |
+PIIはKV（THREAD_MAP）の1箇所に集約し、他のシステムにはquestionIdのみを渡す。
 
-### データ保護
+```
+KV（THREAD_MAP）← PIIの唯一の保存先（30日TTL、アクティブ時自動延長）
+  ├ email, name（顧客のメールアドレス・氏名）
+  ├ channel, ts（Slackスレッド情報）
+  ├ questionId, kintoneRecordId, detailRecordId（業務ID）
+  └ branchNumber（やり取り枝番）
 
-| 対策 | 詳細 |
-|------|------|
-| KVキーのハッシュ化 | THREAD_MAPのキーにメールアドレスの SHA-256 ハッシュを使用（平文メールを保存しない） |
-| エラーログのサニタイズ | kintone.ts / ai.ts: 外部API のエラーレスポンス本文をログに出力しない（ステータスコードのみ） |
-| エラーレスポンスの汎用化 | proxy: クライアントに内部エラー詳細を返さない（`Internal server error` のみ） |
+Slackボタン value ← questionId のみ（PIIなし）
+Slackモーダル private_metadata ← questionId のみ（PIIなし）
+Slack親メッセージ ← 種別・会社名・AIタイトルのみ（PIIなし）
+Slackスレッド返信 ← 氏名・メールアドレスはスレッド内のみに表示
+```
+
+### TTLリセットの仕組み
+
+KV `put` で同キーに上書きするとTTLもリセットされる。以下のタイミングで30日TTLが延長される：
+
+1. `contact.ts`: 初回問い合わせ → KV作成
+2. `reply.ts`: 顧客返信 → KV更新
+3. `slack.ts`: 担当者回答送信 → KV再保存
+
+### Slack通知のPII配置
+
+| メッセージ | 表示内容 | PII |
+|-----------|---------|-----|
+| 親メッセージ（チャンネル一覧で見える） | 種別・会社名・AIタイトル | なし |
+| スレッド返信（展開で見える） | お名前・メールアドレス・問い合わせ内容 | あり |
+| ボタンvalue / モーダルmetadata | questionIdのみ | なし |
 
 ### AIに送信されるデータの範囲
 
 | データ | 送信有無 | 備考 |
 |--------|---------|------|
-| 会社名 | 送信する | 回答案の文脈に必要 |
+| 会社名 | 送信する | 回答案の宛名（会社名＋ご担当者様）に必要 |
 | 問い合わせ内容 | 送信する | 回答案生成に必須 |
-| 氏名 | **送信しない** | プレースホルダー（【問い合わせ者の姓】）で代替 |
+| 氏名 | **送信しない** | 宛名は「ご担当者様」を使用 |
 | メールアドレス | **送信しない** | — |
+| 学習データ（スレッドコンテキスト） | PIIマスク済みで送信 | `stripPII()` でメール・電話番号を自動マスク |
 | 過去Q&A | **送信しない** | PII保護のため無効化済み（将来匿名化対応後に復活可能） |
 | サービスドキュメント | 送信する | GitHub APIから動的取得（公開ドキュメント） |
 | 関連ページURL | 送信する | proxy Workerのクロール結果（公開ページ） |
+
+### 認証・保護
+
+| 対策 | 詳細 |
+|------|------|
+| Webhook認証 | `/reply` のsecret比較にタイミングセーフ比較（HMAC経由）を使用。タイミング攻撃を防止 |
+| Slack署名検証 | `/slack/interact` はHMAC-SHA256署名検証（リプレイ攻撃対策: 5分以内のタイムスタンプチェック） |
+| レート制限 | 全エンドポイントにIP単位のレート制限を適用（フォーム: 5req/10min、webhook: 30req/10min） |
+| エラーログのサニタイズ | console.errorにPIIを含めない。SendGridエラーはステータスコードのみ記録 |
+| エラーレスポンスの汎用化 | クライアントに内部エラー詳細を返さない（`Internal server error` のみ） |
