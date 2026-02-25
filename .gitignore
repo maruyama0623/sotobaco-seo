@@ -13,7 +13,7 @@ sites/lp/public/images/
 web/.next/
 
 # Environment files
-.env
+.env*
 
 # OS files
 .DS_Store

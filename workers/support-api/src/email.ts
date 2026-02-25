@@ -4,15 +4,20 @@ import { sanitize } from "./utils";
 
 export async function sendAutoReplyEmail(
   env: Env,
-  data: ContactBody
+  data: ContactBody,
+  questionId?: string
 ): Promise<Response> {
   const replyTo = env.REPLY_TO_EMAIL || env.FROM_EMAIL;
+
+  const questionIdLine = questionId
+    ? `\nお問い合わせ番号: ${questionId}\n`
+    : "";
 
   const textBody = `${sanitize(data.name)} 様
 
 この度はソトバコへお問い合わせいただき、誠にありがとうございます。
 以下の内容でお問い合わせを受け付けいたしました。
-
+${questionIdLine}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ■ お問い合わせ内容
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -31,12 +36,16 @@ ${data.message}
 しばらくお待ちくださいますようお願い申し上げます。
 
 ※ このメールは自動返信です。
-※ ご返信いただいた場合はサポート担当にて確認いたします。
+※ ご返信の際はこのメールにそのままご返信ください。
 
 ──────────────────────────
 株式会社ソトバコ
 https://sotobaco.com
 ──────────────────────────`;
+
+  const subject = questionId
+    ? `【ソトバコ】お問い合わせありがとうございます [Q-${questionId}]`
+    : "【ソトバコ】お問い合わせありがとうございます";
 
   return fetch("https://api.sendgrid.com/v3/mail/send", {
     method: "POST",
@@ -54,7 +63,7 @@ https://sotobaco.com
         email: replyTo,
         name: "ソトバコ サポート",
       },
-      subject: "【ソトバコ】お問い合わせありがとうございます",
+      subject,
       content: [{ type: "text/plain", value: textBody }],
       tracking_settings: {
         click_tracking: { enable: false },
@@ -70,7 +79,8 @@ export async function sendDraftEmail(
   subject: string,
   body: string
 ): Promise<void> {
-  const replyTo = env.REPLY_TO_EMAIL || env.FROM_EMAIL;
+  const fromEmail = env.SUPPORT_FROM_EMAIL || env.FROM_EMAIL;
+  const replyTo = env.REPLY_TO_EMAIL || fromEmail;
 
   const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
     method: "POST",
@@ -80,7 +90,7 @@ export async function sendDraftEmail(
     },
     body: JSON.stringify({
       personalizations: [{ to: [{ email: toEmail }] }],
-      from: { email: env.FROM_EMAIL, name: "ソトバコ" },
+      from: { email: fromEmail, name: "ソトバコ サポートチーム" },
       reply_to: { email: replyTo, name: "ソトバコ サポート" },
       subject,
       content: [{ type: "text/plain", value: body }],

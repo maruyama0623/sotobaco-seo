@@ -2,6 +2,7 @@ import type { Env, AiResult, SlackActionMeta, ThreadMapValue, LearningMeta } fro
 import { sendDraftEmail, parseDraftContent } from "./email";
 import { updateKintoneRecord, isKintoneEnabled, toKintoneDate } from "./kintone";
 import { buildCompleteButton, handleLearningComplete, populateLearningModal, handleLearningModalSubmit } from "./learning";
+import { extractQuestionId } from "./utils";
 
 async function verifySlackSignature(
   signingSecret: string,
@@ -304,36 +305,56 @@ async function handleSendDraft(
       ? parseDraftContent(draftRaw, meta.subject)
       : { subject: meta.subject, body: draftRaw };
 
+  // メール件名に questionId を付与
+  const finalSubject = meta.questionId
+    ? `${subject} [Q-${meta.questionId}]`
+    : subject;
+
   const threadTs = payload.message?.thread_ts || ts;
 
+  // KVからPII取得
+  if (!meta.questionId || !env.THREAD_MAP) {
+    throw new Error("questionId is required for sending email");
+  }
+  const stored = await env.THREAD_MAP.get(meta.questionId);
+  if (!stored) {
+    await updateSlackMessageError(env, channel, ts, blocks).catch(() => {});
+    // エラーをスレッドに通知
+    await sendSlackMessage(
+      env,
+      [{ type: "section", text: { type: "mrkdwn", text: ":warning: お問い合わせ情報の有効期限が切れました。手動でメールを送信してください。" } }],
+      threadTs
+    ).catch(() => {});
+    return;
+  }
+  const threadInfo = JSON.parse(stored) as ThreadMapValue;
+  const recipientEmail = threadInfo.email;
+
   try {
-    await sendDraftEmail(env, meta.email, subject, body);
+    await sendDraftEmail(env, recipientEmail, finalSubject, body);
     await updateSlackMessageSent(env, channel, ts, blocks, threadTs, meta.category);
 
-    // kintone: App 94に回答を記録 + App 93を「回答済」に更新
-    if (isKintoneEnabled(env) && env.THREAD_MAP) {
-      const stored = await env.THREAD_MAP.get(meta.email.toLowerCase());
-      if (stored) {
-        try {
-          const threadInfo = JSON.parse(stored) as ThreadMapValue;
-
-          // App 94: 最新の明細レコードに回答を追記
-          if (threadInfo.detailRecordId) {
-            await updateKintoneRecord(
-              env,
-              env.KINTONE_APP_ID_94!,
-              threadInfo.detailRecordId,
-              {
-                answer_detail: { value: body },
-                answer_date: { value: toKintoneDate() },
-              }
-            );
-          }
-        } catch { /* ignore parse error */ }
-      }
+    // kintone: App 94に回答を記録
+    if (isKintoneEnabled(env) && threadInfo.detailRecordId) {
+      await updateKintoneRecord(
+        env,
+        env.KINTONE_APP_ID_94!,
+        threadInfo.detailRecordId,
+        {
+          answer_detail: { value: body },
+          answer_date: { value: toKintoneDate() },
+        }
+      ).catch((err) => console.error("kintone update error:", err));
     }
+
+    // TTLリセット（担当者回答時もアクティブ期間を延長）
+    await env.THREAD_MAP.put(
+      meta.questionId,
+      stored,
+      { expirationTtl: 60 * 60 * 24 * 30 }
+    ).catch((err) => console.error("KV TTL reset error:", err));
   } catch (err) {
-    console.error("Draft email send error:", err);
+    console.error("Draft email send error");
     await updateSlackMessageError(env, channel, ts, blocks).catch(() => {});
   }
 }
@@ -355,10 +376,22 @@ async function handleEditDraft(
       ? parseDraftContent(draftRaw, meta.subject)
       : { subject: meta.subject, body: draftRaw };
 
+  // KVからemail取得（モーダル表示用）
+  let displayEmail = "(不明)";
+  if (meta.questionId && env.THREAD_MAP) {
+    const stored = await env.THREAD_MAP.get(meta.questionId);
+    if (stored) {
+      const info = JSON.parse(stored) as ThreadMapValue;
+      displayEmail = info.email;
+    } else {
+      displayEmail = "(期限切れ)";
+    }
+  }
+
   const privateMeta = JSON.stringify({
-    email: meta.email,
     type: meta.type,
     subject: meta.subject,
+    questionId: meta.questionId,
     channel,
     ts,
     thread_ts: payload.message?.thread_ts,
@@ -384,7 +417,7 @@ async function handleEditDraft(
             type: "section",
             text: {
               type: "mrkdwn",
-              text: `*送信先:* ${meta.email}`,
+              text: `*送信先:* ${displayEmail}`,
             },
           },
           {
@@ -473,8 +506,7 @@ async function handleModalSave(
         if (block.block_id === "draft_actions") {
           const newMeta: SlackActionMeta = {
             type: privateMeta.type || "contact",
-            email: privateMeta.email,
-            name: "",
+            questionId: privateMeta.questionId,
             subject,
           };
           const elements = (
@@ -579,6 +611,18 @@ export async function handleSlackInteraction(
     }
 
     if (payload.view?.callback_id === "learning_modal") {
+      const vals = payload.view.state?.values;
+      const issue = vals?.issue_input?.issue_text?.value || "";
+      const policy = vals?.policy_input?.policy_text?.value || "";
+      const errors: Record<string, string> = {};
+      if (!issue.trim()) errors.issue_input = "困っていたことを入力してください";
+      if (!policy.trim()) errors.policy_input = "方針を入力してください";
+      if (Object.keys(errors).length > 0) {
+        return new Response(
+          JSON.stringify({ response_action: "errors", errors }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        );
+      }
       ctx.waitUntil(handleLearningModalSubmit(payload, env));
       return new Response("", { status: 200 });
     }

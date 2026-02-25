@@ -41,10 +41,51 @@ export async function hashEmail(email: string): Promise<string> {
     .join("");
 }
 
+/* ── Question ID ── */
+
+/** メール件名から [Q-YYYYMMDD-NNN] 形式の questionId を抽出 */
+export function extractQuestionId(subject: string): string | null {
+  const match = subject.match(/\[Q-(\d{8}-\d{3,})\]/);
+  return match ? match[1] : null;
+}
+
+/** 非kintone環境用のフォールバックID生成 */
+export function generateFallbackId(): string {
+  const prefix = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+  const rand = crypto.randomUUID().slice(0, 6);
+  return `${prefix}-${rand}`;
+}
+
+/* ── Timing-Safe Comparison ── */
+
+/** タイミング攻撃を防ぐ文字列比較（HMAC経由で固定長比較） */
+export async function timingSafeEqual(a: string, b: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode("timing-safe-compare"),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const [macA, macB] = await Promise.all([
+    crypto.subtle.sign("HMAC", key, encoder.encode(a)),
+    crypto.subtle.sign("HMAC", key, encoder.encode(b)),
+  ]);
+  const arrA = new Uint8Array(macA);
+  const arrB = new Uint8Array(macB);
+  let diff = 0;
+  for (let i = 0; i < arrA.length; i++) {
+    diff |= arrA[i] ^ arrB[i];
+  }
+  return diff === 0;
+}
+
 /* ── Rate Limiting ── */
 
 const RATE_LIMIT_WINDOW = 600; // 10 minutes in seconds
 const RATE_LIMIT_MAX = 5;
+const WEBHOOK_RATE_LIMIT_MAX = 30;
 
 interface RateLimitEntry {
   count: number;
@@ -71,6 +112,39 @@ export async function checkRateLimit(
       return new Response(
         JSON.stringify({ error: "送信回数の上限に達しました。しばらく時間をおいてから再度お試しください。" }),
         { status: 429, headers: { ...headers, "Content-Type": "application/json" } }
+      );
+    }
+    await kv.put(key, JSON.stringify({ count: stored.count + 1, resetAt: stored.resetAt }), {
+      expirationTtl: stored.resetAt - now,
+    });
+  } else {
+    await kv.put(key, JSON.stringify({ count: 1, resetAt: now + RATE_LIMIT_WINDOW }), {
+      expirationTtl: RATE_LIMIT_WINDOW,
+    });
+  }
+
+  return null;
+}
+
+/**
+ * Webhook用レート制限（IP単位、30req/10min）。
+ * 超過時は 429 レスポンスを返し、それ以外は null を返す。
+ */
+export async function checkWebhookRateLimit(
+  kv: KVNamespace,
+  request: Request
+): Promise<Response | null> {
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  const key = `wrl:${ip}`;
+  const now = Math.floor(Date.now() / 1000);
+
+  const stored = await kv.get(key, "json") as RateLimitEntry | null;
+
+  if (stored && now < stored.resetAt) {
+    if (stored.count >= WEBHOOK_RATE_LIMIT_MAX) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded" }),
+        { status: 429, headers: { "Content-Type": "application/json" } }
       );
     }
     await kv.put(key, JSON.stringify({ count: stored.count + 1, resetAt: stored.resetAt }), {

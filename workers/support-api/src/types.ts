@@ -5,6 +5,7 @@ export interface Env {
   SLACK_SIGNING_SECRET: string;
   SLACK_CHANNEL_ID?: string;
   FROM_EMAIL: string;
+  SUPPORT_FROM_EMAIL?: string;
   REPLY_TO_EMAIL: string;
   CORS_ORIGIN: string;
   ANTHROPIC_API_KEY: string;
@@ -53,8 +54,7 @@ export interface AiResult {
 
 export interface SlackActionMeta {
   type: "contact" | "reply";
-  email: string;
-  name: string;
+  questionId: string;
   subject: string;
   category?: string;
 }
@@ -69,6 +69,8 @@ export interface LearningMeta {
 export interface ThreadMapValue {
   channel: string;
   ts: string;
+  email: string;
+  name: string;
   kintoneRecordId?: string;
   questionId?: string;
   detailRecordId?: string;

@@ -1,6 +1,6 @@
 import type { Env, ContactBody, AiResult, SlackActionMeta, ThreadMapValue } from "./types";
 import { CATEGORY_LABELS } from "./types";
-import { isValidEmail, checkRateLimit, hashEmail } from "./utils";
+import { isValidEmail, checkRateLimit, generateFallbackId } from "./utils";
 import { sendAutoReplyEmail } from "./email";
 import { fetchServiceContext, buildContactPrompt, generateAiDraft, fetchRelevantPages } from "./ai";
 import {
@@ -76,8 +76,13 @@ export async function handleContact(
       CATEGORY_LABELS[sanitizedData.category || "other"] || "その他";
     const userMessage = `お問い合わせ種別: ${categoryLabel}\n会社名: ${sanitizedData.company}\n\nお問い合わせ内容:\n${sanitizedData.message}`;
 
+    // questionIdをメール送信前に生成（件名に付与するため）
+    const questionId = isKintoneEnabled(env)
+      ? await generateQuestionId(env)
+      : generateFallbackId();
+
     const [emailRes, aiRes, titleRes] = await Promise.allSettled([
-      sendAutoReplyEmail(env, sanitizedData),
+      sendAutoReplyEmail(env, sanitizedData, questionId),
       env.ANTHROPIC_API_KEY
         ? (async () => {
             const [serviceContext, relevantPages] = await Promise.all([
@@ -103,7 +108,7 @@ export async function handleContact(
     ]);
 
     if (emailRes.status === "rejected") {
-      console.error("SendGrid error:", emailRes.reason);
+      console.error("SendGrid error: request failed");
       return new Response(
         JSON.stringify({ error: "メール送信に失敗しました" }),
         {
@@ -114,8 +119,7 @@ export async function handleContact(
     }
 
     if (emailRes.status === "fulfilled" && !emailRes.value.ok) {
-      const errorText = await emailRes.value.text();
-      console.error("SendGrid API error:", emailRes.value.status, errorText);
+      console.error("SendGrid API error:", emailRes.value.status);
       return new Response(
         JSON.stringify({ error: "メール送信に失敗しました" }),
         {
@@ -129,22 +133,20 @@ export async function handleContact(
     if (aiRes.status === "fulfilled") {
       aiResult = aiRes.value;
     } else {
-      console.error("AI draft generation error:", aiRes.reason);
+      console.error("AI draft generation error");
     }
 
     const titleText =
       titleRes.status === "fulfilled" ? titleRes.value : "新しいお問い合わせ";
     const headerText =
       sanitizedData.category !== "other"
-        ? "【至急確認】サービスに対するお問い合せ"
+        ? "【至急確認】サービスに対するお問い合わせ"
         : "【要確認】コーポレートサイトからのお問い合わせ";
 
-    // Slack通知: 親メッセージ → スレッド返信（内容）→ スレッド返信（AI回答案）
+    // Slack通知: 親メッセージ → スレッド返信（差出人＋内容）→ スレッド返信（AI回答案）
     const summaryBlocks = buildSummaryBlocks(headerText, [
       { label: "種別", value: categoryLabel },
       { label: "会社名", value: sanitizedData.company },
-      { label: "お名前", value: sanitizedData.name },
-      { label: "メールアドレス", value: sanitizedData.email },
     ]);
 
     // AI生成タイトルをメールアドレスの下に挿入（営業判定時はプレフィックス付与）
@@ -162,7 +164,18 @@ export async function handleContact(
     });
 
     if (messageTs) {
-      const contentBlocks = buildContentBlocks("お問い合わせ内容", sanitizedData.message);
+      // スレッド返信: 差出人情報 + お問い合わせ内容（PIIはスレッド内のみ）
+      const contentBlocks: Array<Record<string, unknown>> = [
+        {
+          type: "section",
+          fields: [
+            { type: "mrkdwn", text: `*お名前:*\n${sanitizedData.name}` },
+            { type: "mrkdwn", text: `*メールアドレス:*\n${sanitizedData.email}` },
+          ],
+        },
+        { type: "divider" },
+        ...buildContentBlocks("お問い合わせ内容", sanitizedData.message),
+      ];
       await sendSlackMessage(env, contentBlocks, messageTs).catch((err) => {
         console.error("Slack thread (content) error:", err);
       });
@@ -171,8 +184,7 @@ export async function handleContact(
         const actionMeta: SlackActionMeta | null = env.SLACK_BOT_TOKEN
           ? {
               type: "contact",
-              email: sanitizedData.email,
-              name: sanitizedData.name,
+              questionId,
               subject:
                 "【ソトバコポータル】お問い合わせいただきました件について",
               category: sanitizedData.category,
@@ -192,13 +204,14 @@ export async function handleContact(
       const kvValue: ThreadMapValue = {
         channel: env.SLACK_CHANNEL_ID || "",
         ts: messageTs,
+        email: sanitizedData.email,
+        name: sanitizedData.name,
+        questionId,
       };
-      const emailKey = await hashEmail(sanitizedData.email);
 
       if (isKintoneEnabled(env)) {
         ctx.waitUntil(
           (async () => {
-            const questionId = await generateQuestionId(env);
             const today = toKintoneDate();
 
             // App 93: 親レコード作成
@@ -230,13 +243,12 @@ export async function handleContact(
 
             if (recordId) {
               kvValue.kintoneRecordId = recordId;
-              kvValue.questionId = questionId;
               kvValue.branchNumber = 1;
             }
             if (detailId) kvValue.detailRecordId = detailId;
 
             await env.THREAD_MAP.put(
-              emailKey,
+              questionId,
               JSON.stringify(kvValue),
               { expirationTtl: 60 * 60 * 24 * 30 }
             );
@@ -244,7 +256,7 @@ export async function handleContact(
         );
       } else {
         await env.THREAD_MAP.put(
-          emailKey,
+          questionId,
           JSON.stringify(kvValue),
           { expirationTtl: 60 * 60 * 24 * 30 }
         ).catch((err) => console.error("KV put error:", err));

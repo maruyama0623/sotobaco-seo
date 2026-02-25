@@ -108,7 +108,7 @@ export async function handleFeedback(
   const typeLabel = FEEDBACK_TYPE_LABELS[body.feedbackType];
   const typeEmoji = FEEDBACK_TYPE_EMOJI[body.feedbackType] || "";
 
-  // 親メッセージ: ヘッダー + 基本情報
+  // 親メッセージ: ヘッダー + 基本情報（PIIは含めない）
   const fields: Array<{ label: string; value: string }> = [
     { label: "サービス", value: serviceLabel },
     { label: "種類", value: typeLabel },
@@ -116,25 +116,32 @@ export async function handleFeedback(
   if (body.company?.trim()) {
     fields.push({ label: "会社名", value: body.company.trim() });
   }
-  if (body.name?.trim()) {
-    fields.push({ label: "担当者名", value: body.name.trim() });
-  }
-  if (body.email?.trim()) {
-    fields.push({ label: "メール", value: body.email.trim() });
-  }
 
   const summaryBlocks = buildSummaryBlocks(
     "【感謝】ソトバコの改善に協力いただきました",
     fields
   );
 
-  // Slack通知: 親メッセージ → スレッド返信（コメント内容）
+  // Slack通知: 親メッセージ → スレッド返信（差出人＋コメント内容）
   ctx.waitUntil(
     (async () => {
       try {
         const messageTs = await sendSlackMessage(env, summaryBlocks);
         if (messageTs) {
-          const contentBlocks = buildContentBlocks("コメント", body.comment.trim());
+          // スレッド返信: 差出人情報 + コメント（PIIはスレッド内のみ）
+          const senderFields: Array<Record<string, unknown>> = [];
+          if (body.name?.trim()) {
+            senderFields.push({ type: "mrkdwn", text: `*担当者名:*\n${body.name.trim()}` });
+          }
+          if (body.email?.trim()) {
+            senderFields.push({ type: "mrkdwn", text: `*メール:*\n${body.email.trim()}` });
+          }
+          const contentBlocks: Array<Record<string, unknown>> = [
+            ...(senderFields.length > 0
+              ? [{ type: "section", fields: senderFields }, { type: "divider" }]
+              : []),
+            ...buildContentBlocks("コメント", body.comment.trim()),
+          ];
           await sendSlackMessage(env, contentBlocks, messageTs);
 
           // 「完了」ボタンをスレッドに追加

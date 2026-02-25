@@ -1,5 +1,6 @@
 import type { Env, LearningMeta } from "./types";
 import { CATEGORY_LABELS } from "./types";
+import { stripPII } from "./utils";
 import { generateDocBrushUp, generateLearningSummary } from "./ai";
 import { sendSlackMessage } from "./slack";
 
@@ -63,7 +64,7 @@ function buildModalBlocks(
   } else {
     issueElement.placeholder = {
       type: "plain_text",
-      text: "AIが要約を生成中...",
+      text: "お客様が困っていたことを入力してください",
     };
   }
 
@@ -77,7 +78,7 @@ function buildModalBlocks(
   } else {
     policyElement.placeholder = {
       type: "plain_text",
-      text: "AIが要約を生成中...",
+      text: "ソトバコとしての対応方針を入力してください",
     };
   }
 
@@ -109,7 +110,7 @@ function buildModalBlocks(
   ];
 }
 
-/** 「完了」ボタンクリック → モーダル即時表示（AI要約は後から反映） */
+/** 「完了」ボタンクリック → ローディングモーダル表示（AI要約完了後に入力フィールドを表示） */
 export async function handleLearningComplete(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload: any,
@@ -124,7 +125,7 @@ export async function handleLearningComplete(
     actionTs: payload.message?.ts,
   });
 
-  // モーダルを即座に開く（AI要約はplaceholderで表示）
+  // ローディングモーダルを即座に開く（入力フィールドなし・submitボタンなし）
   const res = await fetch("https://slack.com/api/views.open", {
     method: "POST",
     headers: {
@@ -135,12 +136,19 @@ export async function handleLearningComplete(
       trigger_id: payload.trigger_id,
       view: {
         type: "modal",
-        callback_id: "learning_modal",
+        callback_id: "learning_modal_loading",
         title: { type: "plain_text", text: "学習データ登録" },
-        submit: { type: "plain_text", text: "登録" },
         close: { type: "plain_text", text: "キャンセル" },
         private_metadata: privateMeta,
-        blocks: buildModalBlocks(meta.category),
+        blocks: [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: ":hourglass_flowing_sand: *AI要約を生成中です...*\nしばらくお待ちください。",
+            },
+          },
+        ],
       },
     }),
   });
@@ -191,7 +199,7 @@ async function fetchThreadContext(
     .join("\n---\n");
 }
 
-/** AI要約を生成してモーダルを更新 */
+/** AI要約を生成してローディングモーダルを入力フィールド付きモーダルに差し替え */
 export async function populateLearningModal(
   viewId: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -201,23 +209,33 @@ export async function populateLearningModal(
   const action = payload.actions?.[0];
   const meta: LearningMeta = JSON.parse(action?.value || "{}");
 
+  const privateMeta = JSON.stringify({
+    ...meta,
+    actionChannel: payload.channel?.id,
+    actionTs: payload.message?.ts,
+  });
+
+  let issue = "";
+  let policy = "";
+
   try {
     const context = await fetchThreadContext(
       env,
       meta.messageChannel,
       meta.threadTs
     );
-    if (!context) return;
+    if (context) {
+      const summary = await generateLearningSummary(env, stripPII(context));
+      issue = summary.issue;
+      policy = summary.policy;
+    }
+  } catch (err) {
+    console.error("Learning summary generation error:", err);
+  }
 
-    const { issue, policy } = await generateLearningSummary(env, context);
-    if (!issue && !policy) return;
-
-    const privateMeta = JSON.stringify({
-      ...meta,
-      actionChannel: payload.channel?.id,
-      actionTs: payload.message?.ts,
-    });
-
+  // AI成功・失敗に関わらず、入力フィールド付きモーダルに差し替え
+  // 入力フィールドはここで新規作成されるため initial_value が正しく機能する
+  try {
     await fetch("https://slack.com/api/views.update", {
       method: "POST",
       headers: {
@@ -238,7 +256,7 @@ export async function populateLearningModal(
       }),
     });
   } catch (err) {
-    console.error("Learning modal populate error:", err);
+    console.error("Learning modal update error:", err);
   }
 }
 
