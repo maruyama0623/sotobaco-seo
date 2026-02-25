@@ -17,7 +17,7 @@ const companyData = [
     ),
   },
   { label: "設立日", value: "2024年 12月 17日" },
-  { label: "資本金", value: "6000万円" },
+  { label: "資本金", value: "6,000万円（資本準備金含む）" },
   { label: "代表者", value: "丸山 智大" },
   {
     label: "所在地",
