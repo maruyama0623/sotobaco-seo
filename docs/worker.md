@@ -229,7 +229,7 @@ workers/material-api/src/
 
 | メソッド | パス | 機能 |
 |---------|------|------|
-| POST | `/` | 資料ダウンロードフォーム受付（レート制限→バリデーション→トークン生成→メール送信→Slack通知） |
+| POST | `/` | 資料ダウンロードフォーム受付（レート制限→バリデーション→トークン生成→kintone登録→メール送信→Slack通知） |
 | GET | `/download?token=xxx` | PDFダウンロード（R2から配信、72時間有効トークン認証） |
 | OPTIONS | `*` | CORS preflight |
 
@@ -316,6 +316,9 @@ cd workers/support-api && npx wrangler secret put SENDGRID_API_KEY
 cd workers/proxy && npx wrangler secret put ANTHROPIC_API_KEY
 cd workers/proxy && npx wrangler secret put PROXY_TOKEN
 cd workers/material-api && npx wrangler secret put SENDGRID_API_KEY
+cd workers/material-api && npx wrangler secret put KINTONE_SUBDOMAIN
+cd workers/material-api && npx wrangler secret put KINTONE_APP_ID_95
+cd workers/material-api && npx wrangler secret put KINTONE_API_TOKEN_95
 
 # 手動クロール実行（初回 or キャッシュ即時更新時）
 curl -X POST https://proxy.sotobaco.workers.dev/crawl -H 'x-proxy-token: <TOKEN>'
@@ -342,7 +345,7 @@ proxy
 
 material-api（独立、他Workerとの連携なし）
   ├→ SendGrid
-  ├→ Slack Bot API（親メッセージ + スレッド返信）
+  ├→ Slack Bot API（PIIなし通知 + kintoneリンクボタン）
   ├→ kintone（App 95 — 資料請求リード、環境変数設定時のみ）
   ├→ KV（DOWNLOAD_TOKENS）
   └→ R2（PDF格納）
@@ -380,7 +383,14 @@ material-api（独立、他Workerとの連携なし）
 
 顧客の個人情報（PII）を最小限の箇所に集約し、外部サービスへの不必要な送信を防止する。
 
-### PII集約アーキテクチャ
+### Worker別のSlack PII方針
+
+| Worker | Slack上のPII | 理由 |
+|--------|-------------|------|
+| support-api | スレッド内に表示 | AI回答案の確認・編集・送信をSlackスレッド上で行うため、問い合わせ内容・顧客情報が必要 |
+| material-api | 一切なし | リード情報はkintoneに集約。Slackにはkintoneレコードリンクボタンのみ |
+
+### PII集約アーキテクチャ（support-api）
 
 PIIはKV（THREAD_MAP）の1箇所に集約し、他のシステムにはquestionIdのみを渡す。
 
