@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Corporate -->
+  <url><loc>https://sotobaco.com/</loc><changefreq>monthly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://sotobaco.com/company/</loc><changefreq>yearly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://sotobaco.com/contact/</loc><changefreq>yearly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://sotobaco.com/news/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://sotobaco.com/privacy/</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://sotobaco.com/terms/</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+
+  <!-- Portal LP -->
+  <url><loc>https://sotobaco.com/sotobacoportal/</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://sotobaco.com/sotobacoportal/features/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://sotobaco.com/sotobacoportal/pricing/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+
+  <!-- Btone LP -->
+  <url><loc>https://sotobaco.com/btone/</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+
+  <!-- News Articles -->
+  <url><loc>https://sotobaco.com/news/2025-02-12_portal-release/</loc><changefreq>never</changefreq><priority>0.5</priority></url>
+  <url><loc>https://sotobaco.com/news/2025-03-04_ip-restriction/</loc><changefreq>never</changefreq><priority>0.5</priority></url>
+  <url><loc>https://sotobaco.com/news/2025-03-12_search-fix/</loc><changefreq>never</changefreq><priority>0.5</priority></url>
+  <url><loc>https://sotobaco.com/news/2025-05-13_assigned-tasks/</loc><changefreq>never</changefreq><priority>0.5</priority></url>
+  <url><loc>https://sotobaco.com/news/2025-05-21_mobile-support/</loc><changefreq>never</changefreq><priority>0.5</priority></url>
+  <url><loc>https://sotobaco.com/news/2025-07-04_record-list/</loc><changefreq>never</changefreq><priority>0.5</priority></url>
+  <url><loc>https://sotobaco.com/news/2025-08-12_notification/</loc><changefreq>never</changefreq><priority>0.5</priority></url>
+  <url><loc>https://sotobaco.com/news/2025-10-01_btone-shipment-fix/</loc><changefreq>never</changefreq><priority>0.5</priority></url>
+  <url><loc>https://sotobaco.com/news/2025-10-31_product-partner/</loc><changefreq>never</changefreq><priority>0.5</priority></url>
+  <url><loc>https://sotobaco.com/news/2025-11-10_app-list/</loc><changefreq>never</changefreq><priority>0.5</priority></url>
+  <url><loc>https://sotobaco.com/news/2025-12-16_new-pricing/</loc><changefreq>never</changefreq><priority>0.5</priority></url>
+</urlset>

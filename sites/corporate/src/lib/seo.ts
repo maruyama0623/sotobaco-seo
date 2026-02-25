@@ -33,7 +33,7 @@ export function buildSiteMetadata(): Metadata {
 /* ──────────── ソトバコポータル LP ──────────── */
 
 const PORTAL_NAME = "ソトバコポータル";
-const PORTAL_URL = "https://sotobaco.com/sotobacoportal";
+const PORTAL_URL = "https://sotobaco.com/sotobacoportal/";
 const PORTAL_OG_IMAGE = "/images/portal/portal_overview.png";
 
 export function buildPortalMetadata(): Metadata {
