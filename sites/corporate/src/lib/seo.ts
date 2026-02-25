@@ -44,7 +44,7 @@ export function buildPortalMetadata(): Metadata {
     openGraph: {
       type: "website",
       locale: "ja_JP",
-      siteName: PORTAL_NAME,
+      siteName: SITE_NAME,
       url: PORTAL_URL,
       images: [{ url: PORTAL_OG_IMAGE, width: 1200, height: 630 }],
     },
