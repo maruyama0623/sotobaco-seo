@@ -23,6 +23,17 @@ export default function RootLayout({
   return (
     <html lang="ja" className={notoSansJP.variable}>
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "株式会社ソトバコ",
+              url: "https://blog.sotobaco.com/",
+            }),
+          }}
+        />
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
           strategy="afterInteractive"

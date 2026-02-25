@@ -1,15 +1,16 @@
 import type { Metadata } from "next";
 import type { Article, ArticleSummary } from "@/types/article";
 
-const SITE_NAME = "ソトバコ ブログ";
+const SITE_NAME = "株式会社ソトバコ";
+const BLOG_NAME = "ソトバコ ブログ";
 const SITE_URL = "https://blog.sotobaco.com";
 const DEFAULT_OG_IMAGE = "/images/portal/portal_overview.png";
 
 export function buildSiteMetadata(): Metadata {
   return {
     title: {
-      default: `${SITE_NAME} | kintoneポータルの活用情報`,
-      template: `%s | ${SITE_NAME}`,
+      default: `${BLOG_NAME} | kintoneポータルの活用情報`,
+      template: `%s | ${BLOG_NAME}`,
     },
     description:
       "kintoneのポータルをもっと使いやすく。アプリ整理・部署別表示・ダッシュボード化のノウハウをお届けします。",
@@ -69,11 +70,11 @@ export function buildArticleJsonLd(article: Article | ArticleSummary) {
     datePublished: article.publishedAt,
     author: {
       "@type": "Organization",
-      name: "株式会社ソトバコ.",
+      name: "株式会社ソトバコ",
     },
     publisher: {
       "@type": "Organization",
-      name: "株式会社ソトバコ.",
+      name: "株式会社ソトバコ",
       logo: {
         "@type": "ImageObject",
         url: `${SITE_URL}/images/logo/logo-portal-yoko.png`,
