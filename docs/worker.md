@@ -29,8 +29,9 @@ workers/support-api/src/
   utils.ts      — sanitize, corsHeaders, isValidEmail, stripPII, hashEmail, timingSafeEqual, checkRateLimit, checkWebhookRateLimit
   kintone.ts    — kintone CRUD・ID生成・類似Q&A検索
   email.ts      — SendGrid送信・メール解析（引用除去・アドレス抽出）
-  ai.ts         — AIプロンプト構築・回答案生成・関連ページ取得・docs動的取得
-  slack.ts      — Slack署名検証・メッセージ送信/更新・Block Kit構築・インタラクション
+  ai.ts         — AIプロンプト構築・回答案生成・関連ページ取得・docs動的取得・学習パッチ生成
+  slack.ts      — Slack署名検証・メッセージ送信/更新・Block Kit構築・インタラクション・長文テキスト分割
+  learning.ts   — 学習システム（完了ボタン・モーダル・AI要約・GitHubコミット）
   contact.ts    — handleContact（お問い合わせフォーム受付）
   reply.ts      — handleReply（メール返信処理）
   scheduled.ts  — handleScheduled（週次レポート）
@@ -51,6 +52,15 @@ workers/support-api/src/
 | Cron式 | タイミング | 内容 |
 |--------|-----------|------|
 | `0 1 * * 1` | 毎週月曜 10:00 JST | 週次学習分析レポートをSlack投稿 |
+
+### Slack通知ヘッダー
+
+フォームの送信元ページによって通知タイトルを切り替える。
+
+| 送信元ページ | 判定ロジック | Slackヘッダー |
+|-------------|------------|--------------|
+| `sotobaco.com/contact` | `body.category` あり | 【要確認】コーポレートサイトからのお問い合わせ |
+| `sotobaco.com/requests` | `body.category` なし | 【至急確認】サービスに対するお問い合わせ |
 
 ### お問い合わせフロー
 
@@ -86,6 +96,60 @@ support-api /reply エンドポイント
      Slack スレッドに通知
 ```
 
+### 学習システム
+
+お問い合わせ対応完了後、対応内容をドキュメントに自動反映し、次回以降のAI回答案の精度を向上させる仕組み。
+
+```
+担当者がメール送信完了
+  ↓
+「完了」ボタンをクリック
+  ↓
+ローディングモーダル表示 → AI要約生成（スレッドコンテキストから）
+  ↓
+学習モーダル（対象サービス・困っていたこと・方針の入力フィールド）
+  ↓
+「登録」クリック
+  ├→ Slackスレッドに学習データ投稿
+  ├→ AIパッチ生成（見出し一覧 + 学習データ → 追加内容のみ生成）
+  └→ GitHub API: docs/*.md にコミット（developブランチ）
+```
+
+#### 学習の方針テンプレート
+
+AI要約は以下のテンプレートで生成される。担当者が編集してから登録可能。
+
+```
+今後このような問い合わせが来た場合は以下の回答をしてください。
+
+■ （見出し）
+
+【① （手順名）】
+（具体的な操作手順）
+
+【② （手順名）】
+（具体的な操作手順）
+```
+
+#### ドキュメント更新方式（パッチ方式）
+
+Cloudflare Workers の `waitUntil` 時間制限内で処理を完了させるため、ドキュメント全文書き換えではなくパッチ方式を採用。
+
+| 処理 | 旧方式 | 現方式 |
+|------|--------|--------|
+| AIへの入力 | ドキュメント全文（数十KB） | 見出し一覧のみ + 学習データ |
+| AIの出力 | ドキュメント全文 | 追加先セクション名 + 追加内容のみ |
+| ドキュメント更新 | AI出力で全文置換 | コード側で指定セクションに挿入 |
+| max_tokens | 8192 | 1024 |
+
+#### 必要なSecrets
+
+`GITHUB_TOKEN`（Contents: Read and write 権限）と `GITHUB_REPO`（`owner/repo` 形式）が未設定の場合、Slackスレッド記録のみで GitHub コミットはスキップされる。
+
+#### Slack Block Kit の文字数制限
+
+Slack の section ブロックは `text.text` 最大3000文字の制限がある。学習データの「困っていたこと」「方針」が長い場合、`buildLongTextBlocks()` で自動的に改行位置で複数ブロックに分割して投稿する。
+
 ### AI回答案の情報源
 
 | 情報源 | 内容 | 取得元 |
@@ -101,6 +165,7 @@ support-api /reply エンドポイント
 - 宛名は「会社名＋ご担当者様」を使用（個人名はAIに送信しない）
 - Markdown記法はプロンプトで禁止 + 後処理で自動除去（`**太字**`→太字、`*斜体*`→斜体、`- `→`・`）
 - メール送信元: 受付完了メール=`noreply@sotobaco.com`（FROM_EMAIL）、Slack返信=`support@sotobaco.co.jp`（SUPPORT_FROM_EMAIL）
+- 自動返信メール（noreply@sotobaco.com）には「このメールに返信してください」等の文言を含めない（返信不可アドレスのため）
 
 > **過去Q&A参照（無効化済み）**: kintone App 94 の類似Q&A検索は PII 保護の観点から無効化。`fetchSimilarAnswers` / `extractKeywords` は kintone.ts に関数として残存しているが、contact.ts / reply.ts からの呼び出しを削除済み。将来 kintone 側で回答を匿名化して保存する仕組みができた場合に復活可能。
 
