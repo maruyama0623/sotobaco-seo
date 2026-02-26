@@ -20,7 +20,12 @@ export async function notifySlack(
 
 /** ステージング同期通知ブロック */
 export function buildSyncBlocks(
-  articles: Array<{ title: string; slug: string; isNew: boolean }>
+  articles: Array<{
+    title: string;
+    slug: string;
+    isNew: boolean;
+    isPublished: boolean;
+  }>
 ): Array<Record<string, unknown>> {
   const newArticles = articles.filter((a) => a.isNew);
   const updatedArticles = articles.filter((a) => !a.isNew);

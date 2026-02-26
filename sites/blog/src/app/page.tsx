@@ -21,12 +21,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Article Grid */}
-      <section className="mx-auto max-w-[1200px] px-4 py-10">
+      {/* Article List */}
+      <section className="mx-auto max-w-[1100px] px-4 py-10">
         {articles.length === 0 ? (
           <p className="text-center text-gray-500">記事を準備中です。</p>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="flex flex-col gap-8">
             {articles.map((article) => (
               <ArticleCard key={article.slug} article={article} />
             ))}

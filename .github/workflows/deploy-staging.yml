@@ -148,12 +148,21 @@ jobs:
             fi
           done
 
-          BODY=$(echo "$ARTICLES" | jq '{articles: .}')
+          BODY=$(echo "$ARTICLES" | jq -c '{articles: .}')
           TIMESTAMP=$(date +%s)
-          SIGNATURE=$(echo -n "${TIMESTAMP}:${BODY}" | openssl dgst -sha256 -hmac "$BLOG_WEBHOOK_SECRET" | sed 's/^.* //')
+          SIGNATURE=$(printf '%s' "${TIMESTAMP}:${BODY}" | openssl dgst -sha256 -hmac "$BLOG_WEBHOOK_SECRET" | sed 's/^.* //')
 
-          curl -sf -X POST "${BLOG_API_URL}/sync" \
+          HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" -X POST "${BLOG_API_URL}/sync" \
             -H "Content-Type: application/json" \
             -H "X-Signature-Timestamp: ${TIMESTAMP}" \
             -H "X-Signature: ${SIGNATURE}" \
-            -d "$BODY"
+            -d "$BODY")
+
+          echo "HTTP Status: $HTTP_CODE"
+          cat /tmp/response.json
+          echo ""
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::Sync failed with HTTP $HTTP_CODE"
+            exit 1
+          fi

@@ -27,7 +27,12 @@ export async function handleSync(
     );
   }
 
-  const results: Array<{ title: string; slug: string; isNew: boolean }> = [];
+  const results: Array<{
+    title: string;
+    slug: string;
+    isNew: boolean;
+    isPublished: boolean;
+  }> = [];
 
   for (const article of articles) {
     const existing = await findRecordBySlug(env, article.slug);
@@ -35,7 +40,13 @@ export async function handleSync(
 
     if (existing) {
       await updateRecord(env, existing.id, fields);
-      results.push({ title: article.title, slug: article.slug, isNew: false });
+      const status = existing.fields.status?.value ?? "";
+      results.push({
+        title: article.title,
+        slug: article.slug,
+        isNew: false,
+        isPublished: status === "公開済み",
+      });
     } else {
       // 新規作成時はステータスを「ステージング」に設定
       const createFields = {
@@ -43,13 +54,19 @@ export async function handleSync(
         status: { value: "ステージング" },
       };
       await createRecord(env, createFields);
-      results.push({ title: article.title, slug: article.slug, isNew: true });
+      results.push({
+        title: article.title,
+        slug: article.slug,
+        isNew: true,
+        isPublished: false,
+      });
     }
   }
 
-  // Slack通知
-  if (results.length > 0) {
-    await notifySlack(env, buildSyncBlocks(results));
+  // Slack通知（公開済み記事の更新は除外）
+  const notifiable = results.filter((r) => r.isNew || !r.isPublished);
+  if (notifiable.length > 0) {
+    await notifySlack(env, buildSyncBlocks(notifiable));
   }
 
   return new Response(

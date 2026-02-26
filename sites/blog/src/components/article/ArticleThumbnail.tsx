@@ -27,7 +27,7 @@ export default function ArticleThumbnail({
   const s = sizeStyles[size];
 
   return (
-    <div className={`relative aspect-video bg-brand ${s.outer}`}>
+    <div className={`relative aspect-[306/172] bg-brand ${s.outer}`}>
       <div
         className={`relative flex h-full w-full flex-col rounded bg-white ${s.inner}`}
       >
@@ -39,12 +39,7 @@ export default function ArticleThumbnail({
         />
         <div className="flex flex-1 items-center justify-center">
           <p className={s.titleClass}>
-            {title.split("｜").map((part, i) => (
-              <span key={i}>
-                {i > 0 && <br />}
-                {part}
-              </span>
-            ))}
+            {title.split("｜")[0]}
           </p>
         </div>
       </div>
