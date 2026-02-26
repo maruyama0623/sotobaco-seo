@@ -13,6 +13,7 @@
 | support-api | `support-api.sotobaco.workers.dev` | お問い合わせ受付・自動返信・AI回答案・Slack通知・kintone連携・週次レポート |
 | proxy | `proxy.sotobaco.workers.dev` | AIプロキシ（タイトル要約・回答案生成・コンテンツクロール・学習分析・GA4データ取得） |
 | material-api | `material-api.sotobaco.workers.dev` | 資料ダウンロード（フォーム受付・メール送信・R2からPDF配信・kintone連携） |
+| blog-api | `blog-api.sotobaco.workers.dev` | ブログ記事の公開管理（kintone連携・GitHub API・Slack通知・スケジュール公開） |
 
 ---
 
@@ -366,6 +367,129 @@ material-api Worker
 
 ---
 
+## 4. blog-api
+
+ブログ記事の本番公開・非公開をkintoneからワンクリックで制御するシステム。スケジュール公開機能も搭載。
+
+### ファイル構成
+
+```
+workers/blog-api/src/
+  index.ts      — ルーティング + CORS + scheduled export
+  types.ts      — 型定義（Env, ArticleMeta, SyncRequest, PublishRequest）
+  auth.ts       — HMAC-SHA256署名検証（タイミングセーフ比較）
+  github.ts     — GitHub Contents API（ファイル読み書き）+ Merge API + publishedAt更新
+  kintone.ts    — kintone CRUD（slug検索・レコード作成・更新）
+  slack.ts      — Slack Incoming Webhook通知（同期・公開・非公開）
+  sync.ts       — /sync ハンドラ（ステージング同期）
+  publish.ts    — /publish, /unpublish ハンドラ + publishArticleコアロジック
+  scheduled.ts  — Cron Triggerハンドラ（スケジュール公開）
+workers/blog-api/kintone/
+  blog-publish.js — kintone詳細画面の公開/非公開ボタン（KUC使用）
+```
+
+### エンドポイント
+
+| メソッド | パス | 保護 | 機能 |
+|---------|------|------|------|
+| POST | `/sync` | HMAC署名 | ステージングデプロイ後にkintoneへ記事メタデータを同期 |
+| POST | `/publish` | HMAC署名 | 記事を本番公開（GitHub commit→merge→kintone更新→Slack通知） |
+| POST | `/unpublish` | HMAC署名 | 記事を非公開に戻す（publishedAt空→merge→kintone更新→Slack通知） |
+| OPTIONS | `*` | — | CORS preflight |
+
+### Cronトリガー
+
+| Cron式 | タイミング | 内容 |
+|--------|-----------|------|
+| `33 3 * * *` | 毎日 12:33 JST | kintoneの `scheduled_date` = 今日 かつ `status` = ステージング の記事を自動公開 |
+
+### 公開フロー
+
+```
+① develop push → ステージングデプロイ（既存）
+    → GitHub Actions sync-kintone ジョブ → blog-api /sync → kintoneにレコード作成/更新 + Slack通知
+
+② kintone詳細画面で「本番公開」ボタン押下（即時公開）
+    → blog-api /publish
+    → GitHub API: publishedAt設定 → develop commit → develop→main merge
+    → 本番デプロイ発動（deploy-production.yml）
+    → kintone: status→公開済み + Slack通知
+
+③ kintone詳細画面で「非公開に戻す」ボタン押下
+    → blog-api /unpublish
+    → GitHub API: publishedAt空 → develop commit → develop→main merge
+    → 本番デプロイ発動（記事が非表示になる）
+    → kintone: status→ステージング + Slack通知
+
+④ 公開予定日による自動公開（Cron Trigger）
+    → 毎日12:33 JSTにkintoneを検索
+    → scheduled_date = 今日 AND status = ステージング の記事を自動で②と同じ処理
+```
+
+### kintone連携
+
+| アプリ | 用途 |
+|--------|------|
+| ブログ投稿管理 | 記事の公開状況管理。slug, title, description, article_number, status, scheduled_date, staging_url, production_url, published_at, filename |
+
+- `status`: ドロップダウン（ステージング / 公開済み）
+- `scheduled_date`: 日付型。設定するとCron Triggerで当日12:33 JSTに自動公開
+
+### kintone JSカスタマイズ
+
+kintone UI Component（KUC）の `Kuc.Button` を使用。kintoneアプリのJS/CSSカスタマイズに以下の順で登録:
+
+1. `https://unpkg.com/kintone-ui-component/umd/kuc.min.js`（CDN URL）
+2. `blog-publish.js`（ファイルアップロード）
+
+- ステータス「ステージング」→ 青い「本番公開」ボタン（type: submit）
+- ステータス「公開済み」→ 赤い「非公開に戻す」ボタン（type: alert）
+
+### 認証
+
+全エンドポイントで HMAC-SHA256 + タイムスタンプ（5分以内）で検証。
+
+| ヘッダー | 内容 |
+|---------|------|
+| `X-Signature-Timestamp` | UNIXタイムスタンプ（秒） |
+| `X-Signature` | `HMAC-SHA256(secret, timestamp + ":" + body)` の16進文字列 |
+
+同一の `BLOG_WEBHOOK_SECRET` を以下の3箇所で共有:
+- blog-api Worker（`wrangler secret`）
+- GitHub Actions シークレット
+- kintone JS カスタマイズ（`blog-publish.js` 内）
+
+### 同時公開の競合防止
+
+KV（`PUBLISH_LOCK`）でロックを管理。ロック保持中に別リクエストが来たら `409 Conflict`。TTL 120秒で自動解放。
+
+### 環境変数・Secrets
+
+| 変数名 | 用途 |
+|--------|------|
+| BLOG_WEBHOOK_SECRET | HMAC署名の共有シークレット |
+| GITHUB_TOKEN | GitHub API操作用PAT（Contents: Read/Write） |
+| GITHUB_REPO | `maruyama0623/takeosan` |
+| SLACK_WEBHOOK_URL | Slack通知用Incoming Webhook |
+| KINTONE_SUBDOMAIN | kintoneサブドメイン |
+| KINTONE_APP_ID_BLOG | ブログ投稿管理アプリのID |
+| KINTONE_API_TOKEN_BLOG | ブログ投稿管理アプリのAPIトークン |
+
+### GitHub Actions シークレット（追加分）
+
+| 変数名 | 用途 |
+|--------|------|
+| BLOG_API_URL | blog-api WorkerのURL |
+| BLOG_WEBHOOK_SECRET | HMAC署名の共有シークレット |
+
+### KV Namespace
+
+| Binding | 用途 |
+|---------|------|
+| PUBLISH_LOCK | 公開/非公開処理のロック管理（TTL 120秒） |
+
+---
+
 ## デプロイ
 
 ```bash
@@ -378,6 +502,9 @@ cd workers/proxy && npx wrangler deploy
 # material-api Worker
 cd workers/material-api && npx wrangler deploy
 
+# blog-api Worker
+cd workers/blog-api && npx wrangler deploy
+
 # Secret設定（初回のみ）
 cd workers/support-api && npx wrangler secret put SENDGRID_API_KEY
 cd workers/proxy && npx wrangler secret put ANTHROPIC_API_KEY
@@ -386,6 +513,13 @@ cd workers/material-api && npx wrangler secret put SENDGRID_API_KEY
 cd workers/material-api && npx wrangler secret put KINTONE_SUBDOMAIN
 cd workers/material-api && npx wrangler secret put KINTONE_APP_ID_95
 cd workers/material-api && npx wrangler secret put KINTONE_API_TOKEN_95
+cd workers/blog-api && npx wrangler secret put BLOG_WEBHOOK_SECRET
+cd workers/blog-api && npx wrangler secret put GITHUB_TOKEN
+cd workers/blog-api && npx wrangler secret put GITHUB_REPO
+cd workers/blog-api && npx wrangler secret put SLACK_WEBHOOK_URL
+cd workers/blog-api && npx wrangler secret put KINTONE_SUBDOMAIN
+cd workers/blog-api && npx wrangler secret put KINTONE_APP_ID_BLOG
+cd workers/blog-api && npx wrangler secret put KINTONE_API_TOKEN_BLOG
 
 # 手動クロール実行（初回 or キャッシュ即時更新時）
 curl -X POST https://proxy.sotobaco.workers.dev/crawl -H 'x-proxy-token: <TOKEN>'
@@ -416,6 +550,12 @@ material-api（独立、他Workerとの連携なし）
   ├→ kintone（App 95 — 資料請求リード、環境変数設定時のみ）
   ├→ KV（DOWNLOAD_TOKENS）
   └→ R2（PDF格納）
+
+blog-api（独立、他Workerとの連携なし）
+  ├→ GitHub API（Contents API + Merge API）
+  ├→ kintone（ブログ投稿管理アプリ）
+  ├→ Slack Incoming Webhook
+  └→ KV（PUBLISH_LOCK — 同時公開ロック）
 ```
 
 ---
