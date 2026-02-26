@@ -148,9 +148,9 @@ jobs:
             fi
           done
 
-          BODY=$(echo "$ARTICLES" | jq '{articles: .}')
+          BODY=$(echo "$ARTICLES" | jq -c '{articles: .}')
           TIMESTAMP=$(date +%s)
-          SIGNATURE=$(echo -n "${TIMESTAMP}:${BODY}" | openssl dgst -sha256 -hmac "$BLOG_WEBHOOK_SECRET" | sed 's/^.* //')
+          SIGNATURE=$(printf '%s' "${TIMESTAMP}:${BODY}" | openssl dgst -sha256 -hmac "$BLOG_WEBHOOK_SECRET" | sed 's/^.* //')
 
           HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" -X POST "${BLOG_API_URL}/sync" \
             -H "Content-Type: application/json" \
