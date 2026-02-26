@@ -21,3 +21,6 @@ web/.next/
 
 # Claude Code logs
 .claude/logs/
+
+# Playwright MCP screenshots
+.playwright-mcp/
