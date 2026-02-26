@@ -31,6 +31,7 @@ function parseArticleFile(filename: string): { frontmatter: ArticleFrontmatter; 
       tags: data.tags ?? [],
       ogImage: data.ogImage ?? "",
       articleNumber: data.articleNumber ?? 0,
+      faq: Array.isArray(data.faq) ? data.faq : undefined,
     },
     content,
   };

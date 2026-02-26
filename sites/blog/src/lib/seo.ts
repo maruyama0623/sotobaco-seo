@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { Article, ArticleSummary } from "@/types/article";
+import type { Article, ArticleSummary, FaqItem } from "@/types/article";
 
 const SITE_NAME = "株式会社ソトバコ";
 const BLOG_NAME = "ソトバコ ブログ";
@@ -84,5 +84,41 @@ export function buildArticleJsonLd(article: Article | ArticleSummary) {
       "@type": "WebPage",
       "@id": `${SITE_URL}/articles/${article.slug}/`,
     },
+  };
+}
+
+export function buildFaqJsonLd(faq: FaqItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.a,
+      },
+    })),
+  };
+}
+
+export function buildBreadcrumbJsonLd(article: Article | ArticleSummary) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: BLOG_NAME,
+        item: `${SITE_URL}/`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: article.title,
+        item: `${SITE_URL}/articles/${article.slug}/`,
+      },
+    ],
   };
 }

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { NewsArticle, NewsItem } from "@/lib/news";
 
 const SITE_NAME = "株式会社ソトバコ";
 const SITE_URL = "https://sotobaco.com";
@@ -80,5 +81,79 @@ export function buildPortalPageMetadata(
     alternates: {
       canonical: url,
     },
+  };
+}
+
+/* ──────────── ニュース記事 ──────────── */
+
+export function buildNewsMetadata(article: NewsArticle | NewsItem): Metadata {
+  const url = `${SITE_URL}/news/${article.slug}/`;
+  return {
+    title: `${article.title} | お知らせ | ${SITE_NAME}`,
+    description: article.excerpt,
+    openGraph: {
+      type: "article",
+      title: article.title,
+      description: article.excerpt,
+      url,
+      publishedTime: article.date,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: article.title,
+      description: article.excerpt,
+    },
+    alternates: {
+      canonical: url,
+    },
+  };
+}
+
+export function buildNewsJsonLd(article: NewsArticle | NewsItem) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.excerpt,
+    datePublished: article.date,
+    author: {
+      "@type": "Organization",
+      name: SITE_NAME,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+    },
+    mainEntityOfPage: {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/news/${article.slug}/`,
+    },
+  };
+}
+
+export function buildNewsBreadcrumbJsonLd(article: NewsArticle | NewsItem) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: SITE_NAME,
+        item: `${SITE_URL}/`,
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "お知らせ",
+        item: `${SITE_URL}/news/`,
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: article.title,
+        item: `${SITE_URL}/news/${article.slug}/`,
+      },
+    ],
   };
 }

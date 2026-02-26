@@ -13,6 +13,82 @@ export const metadata: Metadata = {
     "Bカートの受注・商品・出荷情報をkintoneへ連携。バックオフィス業務を効率化するサービス「Btone」。",
 };
 
+/* ──────────────────── FAQ Data (JSON-LD用) ──────────────────── */
+
+const faqData = [
+  {
+    question: "30日間の無料お試しに条件はありますか？",
+    answer:
+      "いいえ、特別な条件はありません。アカウントを作成するだけで、すべての機能を30日間無料でお試しいただけます。決済情報の登録も不要で、お試し期間終了後に自動で課金されることはありません。",
+  },
+  {
+    question: "kintone側で同期する際、必要なアプリを事前に準備しておく必要はありますか？",
+    answer:
+      "必要ありません。Btoneが自動で連携用のアプリを生成するため、事前のアプリ作成や設定は不要です。ただし、現時点ではお客様で事前に準備しているアプリと同期・設定は行えませんのでご注意ください。",
+  },
+  {
+    question: "kintoneとBカートで、同期させる項目は自由に選択できますか？",
+    answer:
+      "はい。kintoneとBカート間で同期させる項目は、お客さまの運用に合わせて自由に選択いただけます。Bカート側・kintone側ともにドロップダウンからフィールドを選択でき、同期の方向（Bカート→kintone / kintone→Bカート / 両方向）も項目ごとに指定できます。不要なフィールドは削除して管理することも可能です。",
+  },
+  {
+    question: "同期のタイミングはいつですか？",
+    answer:
+      "kintoneからBカートへの同期はリアルタイムで反映されます（レコード保存時に自動同期）。一方、BカートからkintoneへはBtoneの各アプリで「取得」ボタンを押したタイミングで同期されます。一括同期・個別同期の両方に対応しています。",
+  },
+  {
+    question: "一度取り込んだデータを再度取り込んだ場合、どうなりますか？",
+    answer:
+      "既存のレコードが最新の情報で上書き更新されます。同じデータが複数のレコードとして重複登録されることはありませんので、安心して繰り返し同期いただけます。",
+  },
+  {
+    question: "kintoneですでに作っているアプリと同期設定はできますか？",
+    answer:
+      "現時点では、お客様が事前に作成されたkintoneアプリとの同期には対応しておりません。Btoneが自動生成する専用の連携アプリをご利用いただく形となります。既存アプリのデータを活用したい場合は、Btoneが生成したアプリへデータを移行してご利用ください。",
+  },
+  {
+    question: "kintone連携にはどの権限が必要ですか？",
+    answer:
+      "初回のkintone連携設定時に、cybozu.com共通管理者権限が必要です。OAuthクライアントの追加を行います。",
+  },
+  {
+    question: "導入前に相談できますか？",
+    answer:
+      "はい、お問い合わせフォームからお気軽にご相談ください。3営業日以内にご回答いたします。",
+  },
+  {
+    question: "解約に手数料はかかりますか？",
+    answer: "いいえ、解約手数料はかかりません。いつでも解約可能です。",
+  },
+  {
+    question: "課金はいつから始まりますか？",
+    answer:
+      "30日間の無料お試し期間終了後、有料プランのお申し込みをいただいた翌月より課金が始まります。",
+  },
+  {
+    question: "支払い方法は何が選べますか？",
+    answer: "現時点では銀行振り込みのみとなります。",
+  },
+  {
+    question: "動作環境は？",
+    answer:
+      "以下のWebブラウザー上で動作いたします。Microsoft Edge最新版（Chromium版のみ）、Mozilla Firefox最新版、Google Chrome最新版、Safari最新版。",
+  },
+];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqData.map((item) => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.answer,
+    },
+  })),
+};
+
 /* ──────────────────── Data ──────────────────── */
 
 const problems = [
@@ -73,6 +149,11 @@ const steps = [
 export default function BtonePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+
       {/* ── Hero ── */}
       <SectionWrapper bg="gradient">
         <div className="flex flex-col items-center gap-12 lg:flex-row">

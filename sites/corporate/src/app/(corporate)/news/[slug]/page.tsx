@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getAllNewsSlugs, getNewsBySlug } from "@/lib/news";
+import { buildNewsMetadata, buildNewsJsonLd, buildNewsBreadcrumbJsonLd } from "@/lib/seo";
 
 type Props = { params: { slug: string } };
 
@@ -12,10 +13,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await getNewsBySlug(params.slug);
   if (!article) return {};
-  return {
-    title: `${article.title} | お知らせ | ソトバコ`,
-    description: article.excerpt,
-  };
+  return buildNewsMetadata(article);
 }
 
 function formatDate(dateStr: string): string {
@@ -27,8 +25,20 @@ export default async function NewsDetailPage({ params }: Props) {
   const article = await getNewsBySlug(params.slug);
   if (!article) notFound();
 
+  const articleJsonLd = buildNewsJsonLd(article);
+  const breadcrumbJsonLd = buildNewsBreadcrumbJsonLd(article);
+
   return (
-    <section className="py-16 md:py-[60px]">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <section className="py-16 md:py-[60px]">
       <div className="mx-auto max-w-[800px] px-4">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-gray-400">
@@ -81,5 +91,6 @@ export default async function NewsDetailPage({ params }: Props) {
         </div>
       </div>
     </section>
+    </>
   );
 }

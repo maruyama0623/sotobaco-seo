@@ -1,5 +1,10 @@
 export type CategoryId = "kyoukan" | "houhou" | "kinou" | "7min" | "service";
 
+export interface FaqItem {
+  q: string;
+  a: string;
+}
+
 export interface ArticleFrontmatter {
   title: string;
   slug: string;
@@ -9,6 +14,7 @@ export interface ArticleFrontmatter {
   tags: string[];
   ogImage: string;
   articleNumber: number;
+  faq?: FaqItem[];
 }
 
 export interface Article extends ArticleFrontmatter {

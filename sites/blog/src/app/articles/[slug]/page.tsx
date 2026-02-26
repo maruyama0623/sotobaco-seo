@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getAllSlugs, getArticleBySlug, getAllArticleSummaries } from "@/lib/articles";
-import { buildArticleMetadata, buildArticleJsonLd } from "@/lib/seo";
+import { buildArticleMetadata, buildArticleJsonLd, buildFaqJsonLd, buildBreadcrumbJsonLd } from "@/lib/seo";
 import { EXTERNAL_URLS, IMAGES, MESSAGING } from "@/lib/constants";
 import ArticleBody from "@/components/article/ArticleBody";
 import CtaBanner from "@/components/ui/CtaBanner";
@@ -28,6 +28,8 @@ export default async function ArticlePage({ params }: PageProps) {
 
   const allArticles = getAllArticleSummaries();
   const jsonLd = buildArticleJsonLd(article);
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd(article);
+  const faqJsonLd = article.faq?.length ? buildFaqJsonLd(article.faq) : null;
 
   return (
     <>
@@ -35,6 +37,16 @@ export default async function ArticlePage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
 
       <div className="mx-auto max-w-[1200px] px-4 py-6">
         {/* 2-column layout */}
