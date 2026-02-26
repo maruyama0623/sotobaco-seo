@@ -321,7 +321,7 @@ LP（https://sotobaco.com/sotobacoportal）
 | 03（③） | ソトバコポータル | sites/blog/articles/03_kintone-app-seiri.md | kintoneのアプリが増えすぎて探せない｜30個超でも迷わない整理術 | 方法 | kintone アプリ 増えすぎ 整理 | - | 制作済み（未公開） |
 | 04（④） | ソトバコポータル | sites/blog/articles/04_kintone-kanrisha-tsurai.md | kintone管理者がつらいと感じる3つの理由と解決策 | 共感 | kintone 管理者 つらい | - | 制作予定 |
 | 05（⑤） | ソトバコポータル | sites/blog/articles/05_kintone-portal-dashboard.md | kintoneポータルをダッシュボード化する方法（一覧・グラフ活用） | 機能 | kintone ポータル ダッシュボード | - | 制作予定 |
-| 06（⑥） | ソトバコポータル | sites/blog/articles/06_kintone-announce.md | kintoneのお知らせが見落とされる｜「全体アナウンス」で確実に届ける方法 | 機能 | kintone 全社アナウンス お知らせ | 2025-09-03 | 現行サイトから移行 |
+| 06（⑥） | ソトバコポータル | sites/blog/articles/06_kintone-oshirase-keijiban.md | kintoneお知らせ掲示板の3つの限界｜部署別に情報を届ける方法 | 機能 | kintone お知らせ掲示板 | - | 制作済み（未公開）※旧記事をキーワード変更して書き直し |
 | 07（⑦） | ソトバコポータル | sites/blog/articles/07_kintone-portal-7min.md | kintoneポータルを7分でカスタマイズ｜ノーコードで部署別に整理する手順 | 7分 | kintone ポータル カスタマイズ 方法 | - | 制作済み（未公開） |
 | 08（⑧） | ソトバコポータル | sites/blog/articles/08_kintone-space-kanri.md | kintoneのスペース管理が失敗する原因｜今日から実践できる5つの改善策 | 方法 | kintone スペース 管理 | - | 制作済み（未公開） |
 | 09（⑨） | ソトバコポータル | sites/blog/articles/09_kintone-portal-mondai.md | kintoneのポータルを整理しないと起きる5つの問題 | 共感 | kintone ポータル 整理 問題 | - | 制作予定 |
