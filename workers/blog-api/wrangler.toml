@@ -1,0 +1,20 @@
+name = "blog-api"
+main = "src/index.ts"
+compatibility_date = "2024-05-12"
+
+# Secrets (set via `wrangler secret put`):
+# - BLOG_WEBHOOK_SECRET (HMAC署名の共有シークレット)
+# - GITHUB_TOKEN (GitHub API操作用PAT)
+# - GITHUB_REPO (owner/repo形式, e.g. "maruyama0623/takeosan")
+# - SLACK_WEBHOOK_URL (Slack通知用Incoming Webhook)
+# - KINTONE_SUBDOMAIN (e.g. "sotobaco")
+# - KINTONE_APP_ID_BLOG (ブログ管理アプリのID)
+# - KINTONE_API_TOKEN_BLOG (ブログ管理アプリのAPIトークン)
+
+# 毎日 12:33 JST (= 03:33 UTC) に公開予定日の記事を自動公開
+[triggers]
+crons = ["33 3 * * *"]
+
+[[kv_namespaces]]
+binding = "PUBLISH_LOCK"
+id = "01fcbc57bc544327a012e1153f03b0d4"

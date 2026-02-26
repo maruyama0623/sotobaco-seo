@@ -114,3 +114,46 @@ jobs:
           target: ${{ secrets.STAGING_SITE_PATH }}
           strip_components: 3
           overwrite: true
+
+  sync-kintone:
+    needs: [detect-changes, deploy-blog]
+    if: needs.detect-changes.outputs.blog == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Parse article frontmatter and sync to kintone
+        env:
+          BLOG_API_URL: ${{ secrets.BLOG_API_URL }}
+          BLOG_WEBHOOK_SECRET: ${{ secrets.BLOG_WEBHOOK_SECRET }}
+        run: |
+          # 記事のfrontmatterをパースしてJSON配列を生成
+          ARTICLES="[]"
+          for file in sites/blog/articles/*.md; do
+            filename=$(basename "$file")
+            # frontmatterをパース（---で囲まれた部分）
+            title=$(sed -n 's/^title: *"\(.*\)"/\1/p' "$file")
+            slug=$(sed -n 's/^slug: *"\(.*\)"/\1/p' "$file")
+            description=$(sed -n 's/^description: *"\(.*\)"/\1/p' "$file")
+            articleNumber=$(sed -n 's/^articleNumber: *\([0-9]*\)/\1/p' "$file")
+            publishedAt=$(sed -n 's/^publishedAt: *"\(.*\)"/\1/p' "$file")
+
+            if [ -n "$slug" ]; then
+              ARTICLES=$(echo "$ARTICLES" | jq --arg t "$title" --arg s "$slug" \
+                --arg d "$description" \
+                --arg an "$articleNumber" --arg pa "$publishedAt" \
+                --arg fn "$filename" \
+                '. + [{"title":$t,"slug":$s,"description":$d,"articleNumber":($an|tonumber),"publishedAt":$pa,"filename":$fn}]')
+            fi
+          done
+
+          BODY=$(echo "$ARTICLES" | jq '{articles: .}')
+          TIMESTAMP=$(date +%s)
+          SIGNATURE=$(echo -n "${TIMESTAMP}:${BODY}" | openssl dgst -sha256 -hmac "$BLOG_WEBHOOK_SECRET" | sed 's/^.* //')
+
+          curl -sf -X POST "${BLOG_API_URL}/sync" \
+            -H "Content-Type: application/json" \
+            -H "X-Signature-Timestamp: ${TIMESTAMP}" \
+            -H "X-Signature: ${SIGNATURE}" \
+            -d "$BODY"
