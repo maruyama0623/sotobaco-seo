@@ -250,7 +250,7 @@ export async function generateLearningSummary(
 ): Promise<{ issue: string; policy: string }> {
   const systemPrompt = `お問い合わせ対応のSlackスレッド内容を読み、以下の2点を要約してください。
 
-1. 「困っていたこと」: お客様が何に困っていたのかを簡潔に要約（1〜3文）
+1. 「困っていたこと」: お客様の質問を1行の短い質問文に要約する（例: 「ポータルを非表示にする方法は？」「フリープランに期間制限はありますか？」）。FAQの質問列にそのまま使える簡潔さにすること
 2. 「方針」: 今後同じ問い合わせが来た場合にそのまま回答として使える内容を作成する
 
 ## 方針の書き方ルール
@@ -262,7 +262,7 @@ export async function generateLearningSummary(
 
 以下の形式で出力してください（他の文章は不要）:
 ISSUE:
-（困っていたことの要約）
+（1行の短い質問文。例: ポータルを非表示にする方法は？）
 
 POLICY:
 今後このような問い合わせが来た場合は以下の回答をしてください。
@@ -306,12 +306,29 @@ POLICY:
   };
 }
 
-/** ドキュメントから見出し行を抽出 */
-function extractHeadings(doc: string): string {
-  return doc
-    .split("\n")
-    .filter((line) => /^#{1,4}\s/.test(line))
-    .join("\n");
+/** ドキュメントから見出し行とFAQ質問一覧を抽出（回答列は省略してトークン節約） */
+function extractHeadingsAndFAQ(doc: string): string {
+  const lines = doc.split("\n");
+  const result: string[] = [];
+  let inFAQSection = false;
+
+  for (const line of lines) {
+    // 見出し行は常に含める
+    if (/^#{1,4}\s/.test(line)) {
+      result.push(line);
+      inFAQSection = /FAQ/.test(line);
+      continue;
+    }
+    // FAQセクション内のテーブル行から質問列だけ抽出
+    if (inFAQSection && /^\|/.test(line)) {
+      const cells = line.split("|").map((c) => c.trim());
+      // ヘッダー行・区切り行はそのまま、データ行は番号+質問のみ
+      if (cells.length >= 3 && !/^-+$/.test(cells[1])) {
+        result.push(`| ${cells[1]} | ${cells[2]} |`);
+      }
+    }
+  }
+  return result.join("\n");
 }
 
 /** 学習データを基にドキュメントへ追加するパッチを生成 */
@@ -321,19 +338,23 @@ export async function generateDocPatch(
   issue: string,
   policy: string
 ): Promise<{ section: string; content: string } | null> {
-  const headings = extractHeadings(currentDoc);
+  const headingsAndFAQ = extractHeadingsAndFAQ(currentDoc);
 
   const systemPrompt = `あなたはサービスドキュメントの編集担当です。
 お問い合わせ対応から得られた学習データを基に、ドキュメントに追加すべき内容を決定してください。
 
-## ドキュメントの見出し一覧
-${headings}
+## ドキュメントの見出し一覧とFAQ質問一覧
+${headingsAndFAQ}
 
 ## ルール
 - 追加先のセクション見出しと、追加する内容だけを出力する
-- 既存の記述と重複する情報は追加不要 → 「NO_CHANGE」とだけ出力する
 - FAQの場合は「| 番号 | 質問 | 回答 |」のテーブル行形式で出力する
 - FAQ以外のセクションへの追加は、そのセクションの末尾に自然に追加できるMarkdownテキストで出力する
+
+## 重複チェック（最重要）
+- 上記のFAQテーブルに同じ質問、または同じ回答内容のエントリが既にある場合は「NO_CHANGE」とだけ出力する
+- 質問文が異なっても、回答の手順・内容が実質同じ場合は重複とみなし「NO_CHANGE」とする
+- 既存エントリと部分的に重なる場合も、新たに追加するほどの差異がなければ「NO_CHANGE」とする
 
 ## 出力形式（厳守）
 SECTION: <挿入先の見出し（例: ## FAQ一覧）>
