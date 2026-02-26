@@ -2,7 +2,7 @@
 title: "kintoneのポータルが使いにくい原因｜部署別に整理する具体的方法"
 slug: "kintone-portal-tsukainikunai"
 description: "kintoneのポータルが使いにくいとお困りの管理者向けに、アプリが増えて混乱する原因と、部署別に整理する具体的な方法を5つ解説します。最短7分で整理できるツールもご紹介。"
-publishedAt: "2026-02-26"
+publishedAt: "2026-02-19"
 category: "kyoukan"
 tags: ["kintone", "ポータル", "使いにくい", "整理", "部署別"]
 ogImage: "/images/portal/portal_overview.png"
