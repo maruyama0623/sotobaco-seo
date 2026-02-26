@@ -240,7 +240,7 @@ LP（https://sotobaco.com/sotobacoportal）
 | No | サービス | ファイル名 | タイトル | 種別 | メインキーワード | 公開日 | 備考 |
 |----|----------|-----------|---------|------|----------------|--------|------|
 | 01（①） | ソトバコポータル | sites/blog/articles/01_kintone-portal-tsukainikunai.md | kintoneのポータルが使いにくい原因と、部署別に整理する具体的方法 | 共感 | kintone ポータル 使いにくい | - | 制作予定 |
-| 02（②） | ソトバコポータル | sites/blog/articles/02_kintone-app-misewake.md | kintoneで部署ごとにアプリを見せ分ける方法【管理者向け】 | 方法 | kintone アプリ 部署 見せ分け | - | 制作予定 |
+| 02（②） | ソトバコポータル | sites/blog/articles/02_kintone-app-misewake.md | kintoneで部署ごとにアプリを見せ分ける方法｜管理者向け実践ガイド | 方法 | kintone アプリ 部署 見せ分け | - | 制作済み（未公開） |
 | 03（③） | ソトバコポータル | sites/blog/articles/03_kintone-app-seiri.md | kintoneのアプリが増えすぎたときの整理術【30個以上ある企業向け】 | 方法 | kintone アプリ 増えすぎ 整理 | - | 制作予定 |
 | 04（④） | ソトバコポータル | sites/blog/articles/04_kintone-kanrisha-tsurai.md | kintone管理者がつらいと感じる3つの理由と解決策 | 共感 | kintone 管理者 つらい | - | 制作予定 |
 | 05（⑤） | ソトバコポータル | sites/blog/articles/05_kintone-portal-dashboard.md | kintoneポータルをダッシュボード化する方法（一覧・グラフ活用） | 機能 | kintone ポータル ダッシュボード | - | 制作予定 |
