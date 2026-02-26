@@ -30,7 +30,7 @@ export function buildSyncBlocks(
     lines.push("*新規:*");
     newArticles.forEach((a) => {
       lines.push(
-        `  <https://stg.blog.sotobaco.com/articles/${a.slug}/|${a.title}>`
+        `  ${a.title}\n  https://stg.blog.sotobaco.com/articles/${a.slug}/`
       );
     });
   }
@@ -38,7 +38,7 @@ export function buildSyncBlocks(
     lines.push("*更新:*");
     updatedArticles.forEach((a) => {
       lines.push(
-        `  <https://stg.blog.sotobaco.com/articles/${a.slug}/|${a.title}>`
+        `  ${a.title}\n  https://stg.blog.sotobaco.com/articles/${a.slug}/`
       );
     });
   }
@@ -85,7 +85,7 @@ export function buildPublishBlocks(
       type: "section",
       text: {
         type: "mrkdwn",
-        text: `<https://blog.sotobaco.com/articles/${slug}/|本番URL>`,
+        text: `https://blog.sotobaco.com/articles/${slug}/`,
       },
     },
   ];
