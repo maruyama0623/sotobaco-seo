@@ -44,7 +44,7 @@ export function getAllArticleSummaries(): ArticleSummary[] {
       if (!parsed) return null;
       return { ...parsed.frontmatter };
     })
-    .filter((a): a is ArticleSummary => a !== null)
+    .filter((a): a is ArticleSummary => a !== null && !!a.publishedAt)
     .sort((a, b) => (b.publishedAt ?? "").localeCompare(a.publishedAt ?? ""));
 }
 
@@ -52,7 +52,8 @@ export function getAllSlugs(): string[] {
   return getArticleFiles()
     .map((f) => {
       const parsed = parseArticleFile(f);
-      return parsed?.frontmatter.slug ?? null;
+      if (!parsed || !parsed.frontmatter.publishedAt) return null;
+      return parsed.frontmatter.slug;
     })
     .filter((s): s is string => s !== null);
 }
@@ -61,6 +62,7 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
   for (const filename of getArticleFiles()) {
     const parsed = parseArticleFile(filename);
     if (!parsed || parsed.frontmatter.slug !== slug) continue;
+    if (!parsed.frontmatter.publishedAt) return null;
 
     const htmlContent = await markdownToHtml(parsed.content);
     return {

@@ -2,7 +2,7 @@
 title: "kintoneで部署ごとにアプリを見せ分ける方法｜管理者向け実践ガイド"
 slug: "kintone-app-misewake"
 description: "kintoneで部署ごとにアプリを見せ分けたい管理者向けに、「アクセス権」と「ポータル整理」の違いから、標準機能の限界、自社に合った方法の選び方まで実践的に解説します。"
-publishedAt: ""
+publishedAt: "2026-02-26"
 category: "houhou"
 tags: ["kintone", "アプリ", "部署", "見せ分け", "アクセス権", "ポータル整理"]
 ogImage: "/images/portal/tab_permission-compare.png"

@@ -2,7 +2,7 @@
 title: "kintoneのポータル画面が整理できない！管理者向けに原因と解決策を解説"
 slug: "kintone-portal-seiri"
 description: "kintoneのポータル画面が整理できずお困りの管理者向けに、アプリが増えて使いにくくなる原因と、部署ごとに整理する具体的な解決策を5つ解説します。ソトバコポータルを使えば最短7分で整理完了。"
-publishedAt: ""
+publishedAt: "2026-02-25"
 category: "kyoukan"
 tags: ["kintone", "ポータル", "整理", "管理者", "アプリ管理"]
 ogImage: "/images/portal/portal_overview.png"
