@@ -63,8 +63,8 @@ export async function handleSync(
     }
   }
 
-  // Slack通知（公開済み記事の更新は除外）
-  const notifiable = results.filter((r) => r.isNew || !r.isPublished);
+  // Slack通知（新規記事のみ）
+  const notifiable = results.filter((r) => r.isNew);
   if (notifiable.length > 0) {
     await notifySlack(env, buildSyncBlocks(notifiable));
   }
