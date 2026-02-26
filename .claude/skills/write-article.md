@@ -13,6 +13,7 @@ kintone関連市場向けのSEO記事を、調査から執筆・仕上げまで�
 ### 2. 競合・参考メディア調査
 - `docs/blog-media.md` の参考メディア一覧から、同テーマの記事をWebFetchで取得
 - 扱っている情報・視点・見出し構成・情報の深さを把握する
+- **YouTube動画も調査する**: WebSearchで関連動画を探し、YouTube Transcript MCP（`get_transcript`, `lang: "ja"`）で上位3〜5本の文字起こしを取得。動画でしか語られていないユーザーの悩み・実践ノウハウを記事に活かす
 - 差別化ポイントを特定する（競合が書いていない切り口、自社ならではの解決策）
 - kintone公式（kintone.cybozu.co.jp / cybozu.dev）で機能仕様の裏付けを取る
 
