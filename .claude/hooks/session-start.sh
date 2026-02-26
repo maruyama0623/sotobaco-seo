@@ -6,4 +6,4 @@ if [ "${CLAUDE_CODE_REMOTE:-}" != "true" ]; then
   exit 0
 fi
 
-echo "Session start: sotobaco-seo ready."
+echo "Session start: takeosan ready."
