@@ -1,0 +1,84 @@
+name: Sync to Public Repository
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source (private)
+        uses: actions/checkout@v4
+        with:
+          path: private
+
+      - name: Checkout public repo
+        uses: actions/checkout@v4
+        with:
+          repository: maruyama0623/sotobaco-public
+          token: ${{ secrets.PUBLIC_REPO_TOKEN }}
+          path: public
+          fetch-depth: 0
+
+      - name: Sync public content
+        run: |
+          # 公開リポジトリの中身をクリア（.git は残す）
+          cd public
+          find . -maxdepth 1 ! -name '.git' ! -name '.' -exec rm -rf {} +
+          cd ..
+
+          # 公開対象をコピー
+          cp -r private/sites public/
+          cp -r private/packages public/
+          cp -r private/images public/
+          cp private/package.json public/
+          cp private/package-lock.json public/
+          cp private/.gitignore public/
+
+          # 非公開ファイルを除去
+          rm -f public/sites/corporate/.env.production
+          rm -f public/sites/corporate/.env.development
+          rm -f public/sites/blog/.env*
+
+          # 公開用 README を生成
+          cat > public/README.md << 'EOF'
+          # sotobaco
+
+          株式会社ソトバコのWebサイト・サービスのソースコードです。
+
+          ## 構成
+
+          | ディレクトリ | 内容 |
+          |-------------|------|
+          | `sites/corporate/` | コーポレートサイト（Next.js） |
+          | `sites/blog/` | ブログサイト（Next.js） |
+          | `packages/` | 共有パッケージ |
+          | `images/` | 共有画像 |
+
+          ## 技術スタック
+
+          - **Frontend**: Next.js 14 / React 18 / Tailwind CSS
+          - **Deploy**: GitHub Actions
+
+          ## 会社情報
+
+          - **会社名**: 株式会社ソトバコ
+          - **サービス**: [ソトバコポータル](https://sotobaco.com/sotobacoportal) / [Btone](https://sotobaco.com/btone)
+          - **Webサイト**: https://sotobaco.com
+          EOF
+          sed -i 's/^          //' public/README.md
+
+      - name: Commit and push
+        run: |
+          cd public
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to sync"
+          else
+            git commit -m "sync: $(date -u +%Y-%m-%d) — auto-synced from private repo"
+            git push origin main
+          fi
