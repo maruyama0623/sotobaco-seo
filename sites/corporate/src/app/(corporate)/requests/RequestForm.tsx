@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useRef, type FormEvent } from "react";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import PageHero from "@/components/ui/PageHero";
 import SectionWrapper from "@/components/ui/SectionWrapper";
-import { CONTACT_API_URL } from "@/lib/constants";
+import { CONTACT_API_URL, TURNSTILE_SITE_KEY } from "@/lib/constants";
 
 type FormData = {
   company: string;
@@ -48,12 +49,20 @@ export default function RequestForm() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [honeypot, setHoneypot] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileError, setTurnstileError] = useState("");
+  const turnstileRef = useRef<TurnstileInstance>(null);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const validationErrors = validate(formData);
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
+
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setTurnstileError("セキュリティ検証を完了してください");
+      return;
+    }
 
     setStatus("submitting");
     try {
@@ -67,12 +76,15 @@ export default function RequestForm() {
           email: formData.email,
           message: combinedMessage,
           _hp: honeypot,
+          turnstileToken: turnstileToken || undefined,
         }),
       });
       if (!res.ok) throw new Error("送信に失敗しました");
       setStatus("success");
     } catch {
       setStatus("error");
+      turnstileRef.current?.reset();
+      setTurnstileToken("");
     }
   };
 
@@ -284,6 +296,22 @@ export default function RequestForm() {
                 </p>
               )}
             </div>
+
+            {/* Turnstile */}
+            {TURNSTILE_SITE_KEY && (
+              <div>
+                <Turnstile
+                  ref={turnstileRef}
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => { setTurnstileToken(token); setTurnstileError(""); }}
+                  onError={() => { setTurnstileToken(""); setTurnstileError("セキュリティ検証に失敗しました。ページを再読み込みしてください。"); }}
+                  onExpire={() => { setTurnstileToken(""); }}
+                />
+                {turnstileError && (
+                  <p className="mt-1.5 text-xs text-red-500">{turnstileError}</p>
+                )}
+              </div>
+            )}
 
             {/* エラーメッセージ */}
             {status === "error" && (

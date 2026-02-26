@@ -14,6 +14,7 @@ web/.next/
 
 # Environment files
 .env*
+!sites/corporate/.env.production
 
 # OS files
 .DS_Store

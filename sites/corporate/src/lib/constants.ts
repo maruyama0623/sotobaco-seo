@@ -12,3 +12,6 @@ export const CONTACT_API_URL =
 
 export const MATERIAL_API_URL =
   process.env.NEXT_PUBLIC_MATERIAL_API_URL || "https://material-api.sotobaco.workers.dev";
+
+export const TURNSTILE_SITE_KEY =
+  process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";

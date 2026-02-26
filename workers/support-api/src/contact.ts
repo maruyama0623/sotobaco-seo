@@ -1,6 +1,7 @@
 import type { Env, ContactBody, AiResult, SlackActionMeta, ThreadMapValue } from "./types";
 import { CATEGORY_LABELS } from "./types";
 import { isValidEmail, checkRateLimit, generateFallbackId } from "./utils";
+import { verifyTurnstile } from "./turnstile";
 import { sendAutoReplyEmail } from "./email";
 import { fetchServiceContext, buildContactPrompt, generateAiDraft, fetchRelevantPages } from "./ai";
 import {
@@ -34,6 +35,13 @@ export async function handleContact(
       status: 200,
       headers: { ...headers, "Content-Type": "application/json" },
     });
+  }
+
+  // Turnstile check
+  if (env.TURNSTILE_SECRET_KEY) {
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const turnstileRes = await verifyTurnstile(env.TURNSTILE_SECRET_KEY, body.turnstileToken, ip, headers);
+    if (turnstileRes) return turnstileRes;
   }
 
   // Rate limit check

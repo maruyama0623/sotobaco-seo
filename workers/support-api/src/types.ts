@@ -21,6 +21,7 @@ export interface Env {
   PROXY_SERVICE?: Fetcher;
   GITHUB_TOKEN?: string;
   GITHUB_REPO?: string;
+  TURNSTILE_SECRET_KEY?: string;
   RATE_LIMIT: KVNamespace;
 }
 
@@ -37,6 +38,7 @@ export interface ContactBody {
   email: string;
   message: string;
   _hp?: string;
+  turnstileToken?: string;
 }
 
 export interface ReplyBody {

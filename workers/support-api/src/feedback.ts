@@ -1,5 +1,6 @@
 import type { Env, LearningMeta } from "./types";
 import { corsHeaders, checkRateLimit } from "./utils";
+import { verifyTurnstile } from "./turnstile";
 import { buildSummaryBlocks, buildContentBlocks, sendSlackMessage } from "./slack";
 import { buildCompleteButton } from "./learning";
 
@@ -11,6 +12,7 @@ interface FeedbackBody {
   name?: string;
   email?: string;
   _hp?: string;
+  turnstileToken?: string;
 }
 
 const SERVICE_LABELS: Record<string, string> = {
@@ -54,6 +56,13 @@ export async function handleFeedback(
       JSON.stringify({ ok: true }),
       { status: 200, headers: jsonHeaders }
     );
+  }
+
+  // Turnstile check
+  if (env.TURNSTILE_SECRET_KEY) {
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const turnstileRes = await verifyTurnstile(env.TURNSTILE_SECRET_KEY, body.turnstileToken, ip, jsonHeaders);
+    if (turnstileRes) return turnstileRes;
   }
 
   // Rate limit check
