@@ -50,6 +50,8 @@ faq:
 
 ### ステップ2：kintone接続設定（約3分）
 
+![ソトバコポータルのkintone接続設定画面。画面の案内に沿ってクライアントIDとシークレットを入力するだけでkintoneと接続できる](/images/portal/setup_kintone-connect.png)
+
 画面の案内に沿って、kintoneとの接続を設定します。cybozu.com共通管理画面でOAuthクライアントを追加し、表示されたクライアントIDとシークレットを入力するだけです。
 
 ![ソトバコポータルのアプリ設定画面。必要なkintoneアプリを一括作成でき、利用に必要なアプリIDも確認できる](/images/portal/setup_app-settings.png)
