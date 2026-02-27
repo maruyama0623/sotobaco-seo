@@ -8,8 +8,8 @@ export default function ArticleCard({ article }: { article: ArticleSummary }) {
       href={`/articles/${article.slug}/`}
       className="group flex flex-col overflow-hidden rounded-lg bg-white shadow-sm transition hover:shadow-md sm:flex-row sm:items-stretch"
     >
-      <div className="aspect-[306/172] w-full shrink-0 sm:w-[306px]">
-        <ArticleThumbnail title={article.title} size="md" />
+      <div className="aspect-[306/172] w-full shrink-0 sm:aspect-auto sm:w-[306px]">
+        <ArticleThumbnail title={article.title} size="md" fill />
       </div>
       <div className="flex flex-col justify-center p-4 sm:p-5">
         {article.publishedAt && (
