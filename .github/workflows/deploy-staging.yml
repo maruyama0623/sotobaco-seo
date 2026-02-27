@@ -83,12 +83,14 @@ jobs:
             ABS_PATH=$(cd "$TARGET_DIR" && pwd)
             HASHED=$(openssl passwd -apr1 "$STAGING_PASS")
             echo "${STAGING_USER}:${HASHED}" > "${ABS_PATH}/.htpasswd"
+            chmod 644 "${ABS_PATH}/.htpasswd"
             if ! grep -q "AuthType Basic" "${ABS_PATH}/.htaccess" 2>/dev/null; then
               TMPFILE=$(mktemp)
               printf 'AuthType Basic\nAuthName "Staging"\nAuthUserFile %s/.htpasswd\nRequire valid-user\n\n' "$ABS_PATH" > "$TMPFILE"
               cat "${ABS_PATH}/.htaccess" >> "$TMPFILE"
               mv "$TMPFILE" "${ABS_PATH}/.htaccess"
             fi
+            chmod 644 "${ABS_PATH}/.htaccess"
         env:
           STAGING_USER: ${{ secrets.STAGING_BASIC_AUTH_USER }}
           STAGING_PASS: ${{ secrets.STAGING_BASIC_AUTH_PASS }}
@@ -150,12 +152,14 @@ jobs:
             ABS_PATH=$(cd "$TARGET_DIR" && pwd)
             HASHED=$(openssl passwd -apr1 "$STAGING_PASS")
             echo "${STAGING_USER}:${HASHED}" > "${ABS_PATH}/.htpasswd"
+            chmod 644 "${ABS_PATH}/.htpasswd"
             if ! grep -q "AuthType Basic" "${ABS_PATH}/.htaccess" 2>/dev/null; then
               TMPFILE=$(mktemp)
               printf 'AuthType Basic\nAuthName "Staging"\nAuthUserFile %s/.htpasswd\nRequire valid-user\n\n' "$ABS_PATH" > "$TMPFILE"
               cat "${ABS_PATH}/.htaccess" >> "$TMPFILE"
               mv "$TMPFILE" "${ABS_PATH}/.htaccess"
             fi
+            chmod 644 "${ABS_PATH}/.htaccess"
         env:
           STAGING_USER: ${{ secrets.STAGING_BASIC_AUTH_USER }}
           STAGING_PASS: ${{ secrets.STAGING_BASIC_AUTH_PASS }}
