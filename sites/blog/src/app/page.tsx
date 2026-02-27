@@ -1,6 +1,7 @@
 import { getAllArticleSummaries } from "@/lib/articles";
 import { MESSAGING } from "@/lib/constants";
 import ArticleCard from "@/components/article/ArticleCard";
+import ArticleList from "@/components/article/ArticleList";
 
 export default function HomePage() {
   const articles = getAllArticleSummaries();
@@ -26,11 +27,11 @@ export default function HomePage() {
         {articles.length === 0 ? (
           <p className="text-center text-gray-500">記事を準備中です。</p>
         ) : (
-          <div className="flex flex-col gap-8">
+          <ArticleList>
             {articles.map((article) => (
               <ArticleCard key={article.slug} article={article} />
             ))}
-          </div>
+          </ArticleList>
         )}
       </section>
     </>
