@@ -3,6 +3,7 @@ import { IMAGES } from "@/lib/constants";
 interface ArticleThumbnailProps {
   title: string;
   size?: "md" | "sm";
+  fill?: boolean;
 }
 
 const sizeStyles = {
@@ -23,11 +24,12 @@ const sizeStyles = {
 export default function ArticleThumbnail({
   title,
   size = "md",
+  fill = false,
 }: ArticleThumbnailProps) {
   const s = sizeStyles[size];
 
   return (
-    <div className={`relative aspect-[306/172] bg-brand ${s.outer}`}>
+    <div className={`relative ${fill ? "h-full" : "aspect-[306/172]"} bg-brand ${s.outer}`}>
       <div
         className={`relative flex h-full w-full flex-col rounded bg-white ${s.inner}`}
       >
