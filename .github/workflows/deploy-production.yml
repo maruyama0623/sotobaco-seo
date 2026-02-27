@@ -11,6 +11,7 @@ jobs:
     outputs:
       blog: ${{ steps.filter.outputs.blog }}
       corporate: ${{ steps.filter.outputs.corporate }}
+      guide: ${{ steps.filter.outputs.guide }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,6 +27,10 @@ jobs:
               - 'packages/**'
             corporate:
               - 'sites/corporate/**'
+              - 'images/**'
+              - 'packages/**'
+            guide:
+              - 'sites/guide/**'
               - 'images/**'
               - 'packages/**'
 
@@ -102,5 +107,43 @@ jobs:
           key: ${{ secrets.SFTP_KEY }}
           source: "sites/corporate/out/"
           target: ${{ secrets.PRODUCTION_SITE_PATH }}
+          strip_components: 3
+          overwrite: true
+
+  deploy-guide:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.guide == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: sites/guide/.nvmrc
+          cache: npm
+          cache-dependency-path: sites/guide/package-lock.json
+
+      - name: Install dependencies
+        working-directory: sites/guide
+        run: npm ci
+
+      - name: Link shared packages
+        run: ln -s ../sites/guide/node_modules packages/node_modules
+
+      - name: Build
+        working-directory: sites/guide
+        run: npm run build
+
+      - name: Deploy to production
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          port: 8022
+          username: ${{ secrets.SFTP_USERNAME }}
+          key: ${{ secrets.SFTP_KEY }}
+          source: "sites/guide/out/"
+          target: ${{ secrets.PRODUCTION_GUIDE_PATH }}
           strip_components: 3
           overwrite: true
