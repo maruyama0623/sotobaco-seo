@@ -59,26 +59,6 @@ jobs:
         run: |
           printf "User-agent: *\nDisallow: /\n" > sites/blog/out/robots.txt
 
-      - name: Add Basic auth for staging
-        env:
-          STAGING_USER: ${{ secrets.STAGING_BASIC_AUTH_USER }}
-          STAGING_PASS: ${{ secrets.STAGING_BASIC_AUTH_PASS }}
-          HTPASSWD_DIR: ${{ secrets.STAGING_BLOG_PATH }}
-        run: |
-          HASHED=$(openssl passwd -apr1 "$STAGING_PASS")
-          echo "${STAGING_USER}:${HASHED}" > sites/blog/out/.htpasswd
-          AUTH_BLOCK="AuthType Basic
-          AuthName \"Staging\"
-          AuthUserFile ${HTPASSWD_DIR}/.htpasswd
-          Require valid-user
-
-          <Files \".htpasswd\">
-            Require all denied
-          </Files>
-          "
-          printf '%s\n\n' "$AUTH_BLOCK" | cat - sites/blog/out/.htaccess > /tmp/htaccess_new
-          mv /tmp/htaccess_new sites/blog/out/.htaccess
-
       - name: Deploy to staging
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -90,6 +70,29 @@ jobs:
           target: ${{ secrets.STAGING_BLOG_PATH }}
           strip_components: 3
           overwrite: true
+
+      - name: Setup Basic auth on server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          port: 8022
+          username: ${{ secrets.SFTP_USERNAME }}
+          key: ${{ secrets.SFTP_KEY }}
+          envs: STAGING_USER,STAGING_PASS,TARGET_DIR
+          script: |
+            ABS_PATH=$(cd "$TARGET_DIR" && pwd)
+            HASHED=$(openssl passwd -apr1 "$STAGING_PASS")
+            echo "${STAGING_USER}:${HASHED}" > "${ABS_PATH}/.htpasswd"
+            if ! grep -q "AuthType Basic" "${ABS_PATH}/.htaccess" 2>/dev/null; then
+              TMPFILE=$(mktemp)
+              printf 'AuthType Basic\nAuthName "Staging"\nAuthUserFile %s/.htpasswd\nRequire valid-user\n\n' "$ABS_PATH" > "$TMPFILE"
+              cat "${ABS_PATH}/.htaccess" >> "$TMPFILE"
+              mv "$TMPFILE" "${ABS_PATH}/.htaccess"
+            fi
+        env:
+          STAGING_USER: ${{ secrets.STAGING_BASIC_AUTH_USER }}
+          STAGING_PASS: ${{ secrets.STAGING_BASIC_AUTH_PASS }}
+          TARGET_DIR: ${{ secrets.STAGING_BLOG_PATH }}
 
   deploy-corporate:
     needs: detect-changes
@@ -123,26 +126,6 @@ jobs:
         run: |
           printf "User-agent: *\nDisallow: /\n" > sites/corporate/out/robots.txt
 
-      - name: Add Basic auth for staging
-        env:
-          STAGING_USER: ${{ secrets.STAGING_BASIC_AUTH_USER }}
-          STAGING_PASS: ${{ secrets.STAGING_BASIC_AUTH_PASS }}
-          HTPASSWD_DIR: ${{ secrets.STAGING_SITE_PATH }}
-        run: |
-          HASHED=$(openssl passwd -apr1 "$STAGING_PASS")
-          echo "${STAGING_USER}:${HASHED}" > sites/corporate/out/.htpasswd
-          AUTH_BLOCK="AuthType Basic
-          AuthName \"Staging\"
-          AuthUserFile ${HTPASSWD_DIR}/.htpasswd
-          Require valid-user
-
-          <Files \".htpasswd\">
-            Require all denied
-          </Files>
-          "
-          printf '%s\n\n' "$AUTH_BLOCK" | cat - sites/corporate/out/.htaccess > /tmp/htaccess_new
-          mv /tmp/htaccess_new sites/corporate/out/.htaccess
-
       - name: Deploy to staging
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -154,6 +137,29 @@ jobs:
           target: ${{ secrets.STAGING_SITE_PATH }}
           strip_components: 3
           overwrite: true
+
+      - name: Setup Basic auth on server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          port: 8022
+          username: ${{ secrets.SFTP_USERNAME }}
+          key: ${{ secrets.SFTP_KEY }}
+          envs: STAGING_USER,STAGING_PASS,TARGET_DIR
+          script: |
+            ABS_PATH=$(cd "$TARGET_DIR" && pwd)
+            HASHED=$(openssl passwd -apr1 "$STAGING_PASS")
+            echo "${STAGING_USER}:${HASHED}" > "${ABS_PATH}/.htpasswd"
+            if ! grep -q "AuthType Basic" "${ABS_PATH}/.htaccess" 2>/dev/null; then
+              TMPFILE=$(mktemp)
+              printf 'AuthType Basic\nAuthName "Staging"\nAuthUserFile %s/.htpasswd\nRequire valid-user\n\n' "$ABS_PATH" > "$TMPFILE"
+              cat "${ABS_PATH}/.htaccess" >> "$TMPFILE"
+              mv "$TMPFILE" "${ABS_PATH}/.htaccess"
+            fi
+        env:
+          STAGING_USER: ${{ secrets.STAGING_BASIC_AUTH_USER }}
+          STAGING_PASS: ${{ secrets.STAGING_BASIC_AUTH_PASS }}
+          TARGET_DIR: ${{ secrets.STAGING_SITE_PATH }}
 
   sync-kintone:
     needs: [detect-changes, deploy-blog]
