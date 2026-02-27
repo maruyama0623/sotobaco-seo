@@ -135,6 +135,20 @@ export const btoneNavigation: NavGroup[] = [
       },
     ],
   },
+  {
+    heading: "よくあるお問い合わせ",
+    sections: [
+      {
+        title: "",
+        items: [
+          {
+            title: "契約について",
+            href: "/btone/qa/contract/",
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export const portalNavigation: NavGroup[] = [
