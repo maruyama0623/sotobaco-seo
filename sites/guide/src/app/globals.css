@@ -1,0 +1,179 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --text-xs: 0.75rem;
+  --leading-xs: 1rem;
+  --text-sm: 0.875rem;
+  --leading-sm: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --text-xs: 15px;
+    --leading-xs: 22px;
+    --text-sm: 15px;
+    --leading-sm: 22px;
+  }
+}
+
+body {
+  font-feature-settings: "pkna";
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ============================================
+   Guide Step Styling
+   ============================================ */
+
+.guide-step {
+  position: relative;
+  margin-bottom: 2.5rem;
+  padding-left: 3rem;
+}
+
+.guide-step[data-step]::before {
+  content: attr(data-step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 2rem;
+  height: 2rem;
+  background-color: #35b597;
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  line-height: 2rem;
+  text-align: center;
+  border-radius: 9999px;
+}
+
+.guide-step h2 {
+  margin-top: 0 !important;
+  padding-top: 0.15rem;
+}
+
+/* ============================================
+   Guide Sub-step Styling
+   ============================================ */
+
+.guide-substep {
+  position: relative;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  padding-left: 2.5rem;
+}
+
+.guide-substep[data-substep]::before {
+  content: attr(data-substep);
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+  width: 2rem;
+  height: 1.5rem;
+  border: 2px solid #35b597;
+  color: #35b597;
+  font-weight: 700;
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  text-align: center;
+  border-radius: 4px;
+}
+
+/* ============================================
+   Guide Alert Box
+   ============================================ */
+
+.guide-alert {
+  background-color: #fef2f2;
+  border-left: 4px solid #ef4444;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #7f1d1d;
+}
+
+.guide-alert::before {
+  content: "⚠ 注意";
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: #dc2626;
+}
+
+/* ============================================
+   Guide Info Box
+   ============================================ */
+
+.guide-info {
+  background-color: #eff6ff;
+  border-left: 4px solid #3b82f6;
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #1e3a5f;
+}
+
+.guide-info::before {
+  content: "💡 ヒント";
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  color: #2563eb;
+}
+
+/* ============================================
+   Guide Image Styling
+   ============================================ */
+
+.guide-step img,
+.guide-substep img {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin: 1rem 0;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ============================================
+   Prose Overrides for Guide
+   ============================================ */
+
+.prose h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.prose h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.prose img {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ============================================
+   Responsive: Mobile Layout
+   ============================================ */
+
+@media (max-width: 767px) {
+  .guide-step {
+    padding-left: 2.5rem;
+  }
+
+  .guide-substep {
+    padding-left: 2rem;
+  }
+}

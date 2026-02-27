@@ -11,6 +11,7 @@ jobs:
     outputs:
       blog: ${{ steps.filter.outputs.blog }}
       corporate: ${{ steps.filter.outputs.corporate }}
+      guide: ${{ steps.filter.outputs.guide }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,6 +27,10 @@ jobs:
               - 'packages/**'
             corporate:
               - 'sites/corporate/**'
+              - 'images/**'
+              - 'packages/**'
+            guide:
+              - 'sites/guide/**'
               - 'images/**'
               - 'packages/**'
 
@@ -58,26 +63,6 @@ jobs:
       - name: Add robots.txt to block indexing
         run: |
           printf "User-agent: *\nDisallow: /\n" > sites/blog/out/robots.txt
-
-      - name: Add Basic auth for staging
-        env:
-          STAGING_USER: ${{ secrets.STAGING_BASIC_AUTH_USER }}
-          STAGING_PASS: ${{ secrets.STAGING_BASIC_AUTH_PASS }}
-          HTPASSWD_DIR: ${{ secrets.STAGING_BLOG_PATH }}
-        run: |
-          HASHED=$(openssl passwd -apr1 "$STAGING_PASS")
-          echo "${STAGING_USER}:${HASHED}" > sites/blog/out/.htpasswd
-          AUTH_BLOCK="AuthType Basic
-          AuthName \"Staging\"
-          AuthUserFile ${HTPASSWD_DIR}/.htpasswd
-          Require valid-user
-
-          <Files \".htpasswd\">
-            Require all denied
-          </Files>
-          "
-          printf '%s\n\n' "$AUTH_BLOCK" | cat - sites/blog/out/.htaccess > /tmp/htaccess_new
-          mv /tmp/htaccess_new sites/blog/out/.htaccess
 
       - name: Deploy to staging
         uses: appleboy/scp-action@v0.1.7
@@ -123,26 +108,6 @@ jobs:
         run: |
           printf "User-agent: *\nDisallow: /\n" > sites/corporate/out/robots.txt
 
-      - name: Add Basic auth for staging
-        env:
-          STAGING_USER: ${{ secrets.STAGING_BASIC_AUTH_USER }}
-          STAGING_PASS: ${{ secrets.STAGING_BASIC_AUTH_PASS }}
-          HTPASSWD_DIR: ${{ secrets.STAGING_SITE_PATH }}
-        run: |
-          HASHED=$(openssl passwd -apr1 "$STAGING_PASS")
-          echo "${STAGING_USER}:${HASHED}" > sites/corporate/out/.htpasswd
-          AUTH_BLOCK="AuthType Basic
-          AuthName \"Staging\"
-          AuthUserFile ${HTPASSWD_DIR}/.htpasswd
-          Require valid-user
-
-          <Files \".htpasswd\">
-            Require all denied
-          </Files>
-          "
-          printf '%s\n\n' "$AUTH_BLOCK" | cat - sites/corporate/out/.htaccess > /tmp/htaccess_new
-          mv /tmp/htaccess_new sites/corporate/out/.htaccess
-
       - name: Deploy to staging
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -152,6 +117,48 @@ jobs:
           key: ${{ secrets.SFTP_KEY }}
           source: "sites/corporate/out/"
           target: ${{ secrets.STAGING_SITE_PATH }}
+          strip_components: 3
+          overwrite: true
+
+  deploy-guide:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.guide == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: sites/guide/.nvmrc
+          cache: npm
+          cache-dependency-path: sites/guide/package-lock.json
+
+      - name: Install dependencies
+        working-directory: sites/guide
+        run: npm ci
+
+      - name: Link shared packages
+        run: ln -s ../sites/guide/node_modules packages/node_modules
+
+      - name: Build
+        working-directory: sites/guide
+        run: npm run build
+
+      - name: Add robots.txt to block indexing
+        run: |
+          printf "User-agent: *\nDisallow: /\n" > sites/guide/out/robots.txt
+
+      - name: Deploy to staging
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SFTP_HOST }}
+          port: 8022
+          username: ${{ secrets.SFTP_USERNAME }}
+          key: ${{ secrets.SFTP_KEY }}
+          source: "sites/guide/out/"
+          target: ${{ secrets.STAGING_GUIDE_PATH }}
           strip_components: 3
           overwrite: true
 

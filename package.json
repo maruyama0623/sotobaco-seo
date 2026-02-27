@@ -7,6 +7,8 @@
     "build": "npm run build --prefix sites/blog",
     "dev:corporate": "npm run dev --prefix sites/corporate",
     "dev:all": "npm run dev --prefix sites/corporate & npm run dev --prefix sites/blog & wait",
-    "build:corporate": "npm run build --prefix sites/corporate"
+    "build:corporate": "npm run build --prefix sites/corporate",
+    "dev:guide": "npm run dev --prefix sites/guide",
+    "build:guide": "npm run build --prefix sites/guide"
   }
 }
