@@ -366,6 +366,7 @@ LP（https://sotobaco.com/sotobacoportal）
 | 08（⑧） | ソトバコポータル | sites/blog/articles/08_kintone-space-kanri.md | kintoneのスペース管理が失敗する原因｜今日から実践できる5つの改善策 | 方法 | kintone スペース 管理 | - | 制作済み（未公開） |
 | 09（⑨） | ソトバコポータル | sites/blog/articles/09_kintone-portal-mondai.md | kintoneのポータルを整理しないと起きる5つの問題 | 共感 | kintone ポータル 整理 問題 | - | 制作予定 |
 | 10（⑩） | ソトバコポータル | sites/blog/articles/10_kintone-kyou-yaru-koto.md | kintoneで"今日やること"をポータルに表示する方法 | 機能 | kintone 今日やること ポータル | - | 制作済み（未公開） |
+| 11 | ソトバコポータル | sites/blog/articles/11_kintone-oshirase-nagasugiru.md | kintoneのお知らせ掲示板が長すぎる｜スクロール地獄を解消する方法 | 共感 | kintone お知らせ掲示板 長すぎる | - | 制作済み（未公開） |
 | 12 | ソトバコポータル | sites/blog/articles/12_kintone-multiple-portal.md | kintone複数ポータルの制限とは｜ソトバコポータルとの違いを徹底比較 | 機能 | kintone 複数ポータル 比較 | 2025-09-18 | 現行サイトから移行 |
 | 13 | ソトバコポータル | sites/blog/articles/13_kintone-announce-tips.md | kintone全体アナウンスの活用術｜お知らせ運用が変わる裏ワザ3選 | 方法 | kintone 全体アナウンス 活用 裏ワザ | 2025-10-10 | 現行サイトから移行 |
 
