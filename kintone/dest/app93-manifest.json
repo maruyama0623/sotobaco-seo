@@ -1,9 +1,8 @@
 {
-  "app": "93",
   "scope": "ALL",
   "desktop": {
     "js": [
-      "src/app93-contact-list.js"
+      "../src/app93-contact-list.js"
     ],
     "css": []
   },

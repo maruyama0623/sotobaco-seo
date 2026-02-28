@@ -1,9 +1,9 @@
 {
-  "app": "YOUR_APP_ID",
   "scope": "ALL",
   "desktop": {
     "js": [
-      "src/sample.js"
+      "https://unpkg.com/kintone-ui-component/umd/kuc.min.js",
+      "../../workers/blog-api/kintone/blog-publish.js"
     ],
     "css": []
   },
