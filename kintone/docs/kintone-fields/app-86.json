@@ -3,8 +3,8 @@
     "id": 86,
     "name": "ソトバコポータル契約管理"
   },
-  "fetchedAt": "2026-02-14T04:39:08.444Z",
-  "revision": "35",
+  "fetchedAt": "2026-02-28T03:39:57.178Z",
+  "revision": "60",
   "properties": {
     "cliemt_name": {
       "type": "SINGLE_LINE_TEXT",
@@ -31,16 +31,12 @@
       "noLabel": false,
       "required": false,
       "options": {
-        "プロプラン": {
-          "label": "プロプラン",
-          "index": "3"
-        },
         "ライトプラン": {
           "label": "ライトプラン",
           "index": "1"
         },
-        "グロープラン": {
-          "label": "グロープラン",
+        "スタンダードプラン": {
+          "label": "スタンダードプラン",
           "index": "2"
         },
         "フリープラン": {
@@ -48,7 +44,7 @@
           "index": "0"
         }
       },
-      "defaultValue": ""
+      "defaultValue": "フリープラン"
     },
     "レコード番号": {
       "type": "RECORD_NUMBER",
@@ -95,6 +91,32 @@
       "code": "更新者",
       "label": "更新者",
       "noLabel": false
+    },
+    "関連契約情報": {
+      "type": "REFERENCE_TABLE",
+      "code": "関連契約情報",
+      "label": "関連契約情報",
+      "noLabel": false,
+      "referenceTable": {
+        "relatedApp": {
+          "app": "86",
+          "code": ""
+        },
+        "condition": {
+          "field": "cliemt_name",
+          "relatedField": "cliemt_name"
+        },
+        "filterCond": "",
+        "displayFields": [
+          "contract_plan",
+          "portal_date_contract",
+          "billing_cycle",
+          "date_traiallimit",
+          "date_cancel"
+        ],
+        "sort": "portal_date_contract desc",
+        "size": "50"
+      }
     },
     "作成者": {
       "type": "CREATOR",

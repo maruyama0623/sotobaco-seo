@@ -1,0 +1,16 @@
+{
+  "name": "stepmail-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "templates:sync": "node scripts/sync-templates.js",
+    "templates:status": "node scripts/sync-templates.js --status"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240512.0",
+    "typescript": "^5.4.0",
+    "wrangler": "^3.57.0"
+  }
+}

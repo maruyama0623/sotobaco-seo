@@ -1,0 +1,27 @@
+name = "stepmail-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+# Secrets (set via `wrangler secret put`):
+# - SENDGRID_API_KEY (SendGrid APIキー)
+# - WEBHOOK_SECRET (HMAC認証用シークレット)
+# - UNSUBSCRIBE_SECRET (配信停止URL署名用)
+# - SLACK_WEBHOOK_URL (Slack通知用Incoming Webhook)
+
+[vars]
+FROM_EMAIL = "noreply@sotobaco.com"
+FROM_NAME = "ソトバコポータル"
+TEMPLATE_ID_STEP1 = "d-e294e9c14def4a5e92c01f5ee0b55bd7"
+TEMPLATE_ID_STEP2 = "d-13a7889cc89d4feda0e74fcb4d4d278d"
+TEMPLATE_ID_STEP3 = "d-14c1a90b33c24a7b8446a1930f6f4839"
+TEMPLATE_ID_STEP4 = "d-89be0743b1ad4fab88de1d60071e1ed0"
+TEMPLATE_ID_STEP5 = "d-b5e9e52dcd114998afa870c3d4da4b3f"
+TEMPLATE_ID_STEP6 = "d-087ee2a2c11e4994a69de083eaf2fdc1"
+
+# 毎日 09:00 JST (= 00:00 UTC) にステップメール配信
+[triggers]
+crons = ["0 0 * * *"]
+
+[[kv_namespaces]]
+binding = "STEPMAIL_KV"
+id = "67b6dc59b6ca4e8dac3216eb0a10f0e3"

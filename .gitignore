@@ -9,6 +9,9 @@ sites/*/node_modules/
 # LP images (copied at build time from root images/)
 sites/lp/public/images/
 
+# Guide images (copied at build time from root images/)
+sites/guide/public/images/
+
 # Legacy web/ directory
 web/.next/
 
@@ -24,3 +27,9 @@ web/.next/
 
 # Playwright MCP screenshots
 .playwright-mcp/
+
+# Workers local dev
+workers/*/.wrangler/
+
+# SendGrid template IDs (generated)
+workers/stepmail-api/scripts/template-ids.json

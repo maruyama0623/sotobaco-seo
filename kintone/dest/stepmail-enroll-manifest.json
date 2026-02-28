@@ -1,0 +1,14 @@
+{
+  "scope": "ALL",
+  "desktop": {
+    "js": [
+      "https://unpkg.com/kintone-ui-component/umd/kuc.min.js",
+      "../../workers/stepmail-api/kintone/stepmail-enroll.js"
+    ],
+    "css": []
+  },
+  "mobile": {
+    "js": [],
+    "css": []
+  }
+}
