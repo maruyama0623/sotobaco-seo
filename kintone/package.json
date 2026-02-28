@@ -1,17 +1,17 @@
 {
   "name": "sotobaco-kintone",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "2.0.0",
+  "description": "kintone JSカスタマイズ管理（cli-kintone）",
+  "private": true,
   "scripts": {
-    "upload:69": "export $(cat .env | xargs) && kintone-customize-uploader dest/app69-manifest.json --base-url \"$KINTONE_BASE_URL\" --username \"$KINTONE_USERNAME\" --password \"$KINTONE_PASSWORD\"",
-    "watch:69": "export $(cat .env | xargs) && kintone-customize-uploader dest/app69-manifest.json --base-url \"$KINTONE_BASE_URL\" --username \"$KINTONE_USERNAME\" --password \"$KINTONE_PASSWORD\" --watch",
-    "upload:93": "export $(cat .env | xargs) && kintone-customize-uploader dest/app93-manifest.json --base-url \"$KINTONE_BASE_URL\" --username \"$KINTONE_USERNAME\" --password \"$KINTONE_PASSWORD\"",
-    "watch:93": "export $(cat .env | xargs) && kintone-customize-uploader dest/app93-manifest.json --base-url \"$KINTONE_BASE_URL\" --username \"$KINTONE_USERNAME\" --password \"$KINTONE_PASSWORD\" --watch",
+    "upload:69": "export $(cat .env | xargs) && npx cli-kintone customize apply --app 69 --base-url \"$KINTONE_BASE_URL\" --username \"$KINTONE_USERNAME\" --password \"$KINTONE_PASSWORD\" --input dest/app69-manifest.json --yes",
+    "upload:74": "export $(cat .env | xargs) && npx cli-kintone customize apply --app 74 --base-url \"$KINTONE_BASE_URL\" --username \"$KINTONE_USERNAME\" --password \"$KINTONE_PASSWORD\" --input dest/app74-manifest.json --yes",
+    "upload:93": "export $(cat .env | xargs) && npx cli-kintone customize apply --app 93 --base-url \"$KINTONE_BASE_URL\" --username \"$KINTONE_USERNAME\" --password \"$KINTONE_PASSWORD\" --input dest/app93-manifest.json --yes",
+    "upload:86": "export $(cat .env | xargs) && npx cli-kintone customize apply --app 86 --base-url \"$KINTONE_BASE_URL\" --username \"$KINTONE_USERNAME\" --password \"$KINTONE_PASSWORD\" --input dest/stepmail-enroll-manifest.json --yes",
+    "upload:96": "export $(cat .env | xargs) && npx cli-kintone customize apply --app 96 --base-url \"$KINTONE_BASE_URL\" --username \"$KINTONE_USERNAME\" --password \"$KINTONE_PASSWORD\" --input dest/blog-publish-manifest.json --yes",
+    "upload:all": "npm run upload:69 && npm run upload:74 && npm run upload:93 && npm run upload:86 && npm run upload:96",
     "client-no:resequence:69": "export $(cat .env | xargs) && node scripts/resequence-client-no.js",
     "client-no:resequence:69:execute": "export $(cat .env | xargs) && node scripts/resequence-client-no.js --execute",
-    "upload:74": "export $(cat .env | xargs) && kintone-customize-uploader dest/app74-manifest.json --base-url \"$KINTONE_BASE_URL\" --username \"$KINTONE_USERNAME\" --password \"$KINTONE_PASSWORD\"",
-    "watch:74": "export $(cat .env | xargs) && kintone-customize-uploader dest/app74-manifest.json --base-url \"$KINTONE_BASE_URL\" --username \"$KINTONE_USERNAME\" --password \"$KINTONE_PASSWORD\" --watch",
     "fields:sync": "export $(cat .env | xargs) && node scripts/sync-kintone-fields.js",
     "fields:sync:69": "export $(cat .env | xargs) && node scripts/sync-kintone-fields.js --app 69",
     "fields:sync:74": "export $(cat .env | xargs) && node scripts/sync-kintone-fields.js --app 74",
@@ -22,6 +22,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@kintone/customize-uploader": "^9.0.2"
+    "@kintone/cli": "^1.19.1"
   }
 }

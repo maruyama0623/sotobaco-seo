@@ -1,9 +1,8 @@
 {
-  "app": "69",
   "scope": "ALL",
   "desktop": {
     "js": [
-      "src/app69-client-code.js"
+      "../src/app69-client-code.js"
     ],
     "css": []
   },
