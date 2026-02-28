@@ -38,6 +38,9 @@ https://guide.sotobaco.com/portal/edit/portal-edit/
 まずは「全社共通」と「自分の部署」の2タブから始めるのがおすすめです。
 タブやアプリカードは後からいつでも追加・変更できるので、まずは気軽に試してみてください。
 
+▶ タブの分け方に迷ったらこちら
+https://blog.sotobaco.com/articles/kintone-tab-sekkei/
+
 ### ご不明点がございましたら
 
 操作でお困りの際は、お気軽にお問い合わせください。
@@ -119,6 +122,9 @@ https://guide.sotobaco.com/portal/edit/assigned/
 - **サイズ変更**: 重要なアプリは「大」サイズで説明文つき表示
 - **外部リンク**: kintone以外のサービス（スプレッドシート・勤怠システム等）もカードとして追加可能
 
+▶ 通知・未処理・グラフの詳しい活用法はこちら
+https://blog.sotobaco.com/articles/kintone-tsuuchi-minogasu/
+
 ---
 
 ## 第4通｜1週間後（Day 7）
@@ -160,6 +166,9 @@ https://guide.sotobaco.com/portal/edit/mobile/
 
 ▶ kintone標準ポータルの非表示設定
 https://guide.sotobaco.com/portal/edit/hide-default-portal/
+
+▶ 全社展開の進め方を詳しく知りたい方はこちら
+https://blog.sotobaco.com/articles/kintone-zensya-teichaku/
 
 ### 困ったときは
 
@@ -215,6 +224,9 @@ https://guide.sotobaco.com/portal/qa/faq/
 kintone1環境につき1契約です。ユーザー数やアプリ数による追加課金はありません。
 アップグレードはいつでも可能で、課金開始はお申し込み翌月からです。
 
+▶ プランの違いを詳しく知りたい方はこちら
+https://blog.sotobaco.com/articles/sotobaco-portal-plan/
+
 ▶ プランの詳細を見る
 https://sotobaco.com/sotobacoportal/pricing
 
@@ -251,6 +263,14 @@ https://guide.sotobaco.com/portal/
 
 ▶ お問い合わせフォーム
 https://sotobaco.com/sotobacoportal/contact
+
+### 活用パターンのご紹介
+
+部署別整理・KPIダッシュボード・新人オンボーディングなど、
+ソトバコポータルの活用パターンをまとめています。
+
+▶ ソトバコポータルの活用パターン3選
+https://blog.sotobaco.com/articles/kintone-portal-katsuyo-pattern/
 
 ### 有料プランのご検討
 
